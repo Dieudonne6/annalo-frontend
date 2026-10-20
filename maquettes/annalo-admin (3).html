@@ -1,0 +1,2571 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Annalo Admin — Tableau de bord</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#003976;
+  --navy-2:#0F5CA8;
+  --navy-deep:#04193A;
+  --ink:#0B1B2E;
+  --paper:#F6F1E3;
+  --paper-2:#EEE6D2;
+  --white:#FFFDF7;
+  --gold:#B8862F;
+  --gold-light:#E8B94D;
+  --brick:#A23E2E;
+  --green:#1F7A45;
+  --green-bg:rgba(46,158,91,0.12);
+  --text:#16212F;
+  --text-soft:#56636F;
+  --text-faint:#8B939E;
+  --line: rgba(11,27,46,0.12);
+  --line-soft: rgba(11,27,46,0.07);
+  --shadow-card: 0 1px 2px rgba(6,16,30,0.05), 0 8px 20px -12px rgba(6,16,30,0.14);
+  --shadow-lift: 0 20px 44px -16px rgba(4,25,58,0.3);
+  --font-display:'Fraunces', serif;
+  --font-body:'Manrope', sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+  --sidebar-w:246px;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:var(--font-body); background:var(--paper); color:var(--text); -webkit-font-smoothing:antialiased;}
+button{font-family:inherit; cursor:pointer;}
+a{color:inherit; text-decoration:none;}
+h1,h2,h3{font-family:var(--font-display); font-weight:600; color:var(--ink);}
+:focus-visible{outline:2px solid var(--navy-2); outline-offset:2px;}
+input,select,textarea{font-family:var(--font-body);}
+
+/* ===== APP SHELL ===== */
+.app{display:flex; min-height:100vh;}
+
+/* ===== SIDEBAR ===== */
+.sidebar{
+  width:var(--sidebar-w); flex:0 0 auto; background:linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+  color:var(--paper); position:fixed; top:0; bottom:0; left:0; display:flex; flex-direction:column; z-index:80;
+  transition:transform .2s ease;
+}
+.sb-brand{display:flex; align-items:center; gap:10px; padding:24px 22px 20px;}
+.sb-brand .mark{width:32px; height:32px; border-radius:9px; background:var(--gold); color:#2B1D06; display:flex; align-items:center; justify-content:center; font-weight:700; font-family:var(--font-display); font-size:15px;}
+.sb-brand .name{font-family:var(--font-display); font-size:17px; font-weight:600; color:var(--white);}
+.sb-brand .name small{display:block; font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(246,241,227,0.45); font-weight:600; margin-top:1px;}
+.sb-nav{flex:1; overflow-y:auto; padding:8px 12px;}
+.sb-group-label{font-family:var(--font-mono); font-size:9.5px; letter-spacing:0.1em; text-transform:uppercase; color:rgba(246,241,227,0.35); padding:16px 10px 8px;}
+.sb-link{
+  display:flex; align-items:center; gap:11px; padding:10px 12px; border-radius:10px; margin-bottom:2px;
+  font-size:13px; font-weight:600; color:rgba(246,241,227,0.68); position:relative;
+}
+.sb-link svg{width:17px; height:17px; stroke:currentColor; fill:none; stroke-width:1.7; flex:0 0 auto;}
+.sb-link:hover{background:rgba(246,241,227,0.06); color:var(--white);}
+.sb-link.active{background:rgba(232,185,77,0.14); color:var(--white);}
+.sb-link.active::before{content:""; position:absolute; left:-12px; top:8px; bottom:8px; width:3px; border-radius:3px; background:var(--gold-light);}
+.sb-badge{margin-left:auto; background:var(--brick); color:var(--white); font-size:10px; font-weight:700; padding:2px 7px; border-radius:20px; font-family:var(--font-mono);}
+.sb-foot{padding:16px; border-top:1px solid rgba(246,241,227,0.1);}
+.sb-admin{display:flex; align-items:center; gap:10px; padding:10px; border-radius:11px; background:rgba(246,241,227,0.05);}
+.sb-admin .av{width:34px; height:34px; border-radius:50%; background:var(--gold-light); color:#2B1D06; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; flex:0 0 auto;}
+.sb-admin .txt .n{font-size:12.5px; font-weight:700; color:var(--white);}
+.sb-admin .txt .r{font-size:10.5px; color:rgba(246,241,227,0.5);}
+.sb-logout{
+  display:flex; align-items:center; gap:9px; width:100%; margin-top:8px; padding:10px 12px;
+  border-radius:10px; border:1px solid rgba(246,241,227,0.14); background:transparent;
+  color:rgba(246,241,227,0.68); font-size:12.5px; font-weight:700;
+}
+.sb-logout svg{width:15px; height:15px; stroke:currentColor; fill:none; stroke-width:1.8;}
+.sb-logout:hover{background:rgba(162,62,46,0.16); border-color:rgba(162,62,46,0.4); color:#F3B6AB;}
+
+.logout-screen{
+  position:fixed; inset:0; z-index:300; background:linear-gradient(180deg, var(--navy) 0%, var(--navy-deep) 100%);
+  display:none; flex-direction:column; align-items:center; justify-content:center; text-align:center; color:var(--paper); gap:14px; padding:20px;
+}
+.logout-screen.show{display:flex;}
+.logout-screen .mark{width:56px; height:56px; border-radius:14px; background:var(--gold); color:#2B1D06; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:24px;}
+.logout-screen h2{color:var(--white); font-size:24px; margin-top:6px;}
+.logout-screen p{color:rgba(246,241,227,0.65); font-size:13.5px; max-width:34ch; margin-bottom:6px;}
+
+/* ===== LOGIN ===== */
+body{opacity:1;}
+.app{display:none;}
+body.logged-in .app{display:flex;}
+.login-screen{
+  position:fixed; inset:0; z-index:400; background:linear-gradient(150deg, var(--navy) 0%, var(--navy-deep) 70%);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+body.logged-in .login-screen{display:none;}
+.login-card{background:var(--paper); border-radius:20px; padding:34px; max-width:380px; width:100%; box-shadow:var(--shadow-lift); text-align:center;}
+.login-mark{width:52px; height:52px; margin:0 auto; border-radius:14px; background:var(--navy); color:var(--paper); display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:22px;}
+.login-card h2{margin-top:16px; font-size:21px;}
+.login-card p{font-size:12.5px; color:var(--text-soft); margin-top:6px;}
+.login-card .field-label{text-align:left;}
+.login-note{font-size:11px; color:var(--text-faint); margin-top:16px;}
+
+/* ===== RÔLES ===== */
+body.role-moderateur [data-role="admin"]{display:none !important;}
+
+/* ===== MAIN ===== */
+.main{flex:1; margin-left:var(--sidebar-w); min-width:0; display:flex; flex-direction:column;}
+.topbar{
+  position:sticky; top:0; z-index:40; background:rgba(246,241,227,0.9); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between;
+  padding:0 30px; height:70px;
+}
+.tb-left{display:flex; align-items:center; gap:14px;}
+.mobile-burger{display:none; width:36px; height:36px; border-radius:9px; border:1px solid var(--line); background:var(--white); align-items:center; justify-content:center;}
+.mobile-burger svg{width:17px; height:17px; stroke:var(--ink); fill:none; stroke-width:2;}
+.tb-title{font-family:var(--font-display); font-size:19px; font-weight:600;}
+.tb-title .sub{font-size:11.5px; color:var(--text-soft); font-family:var(--font-body); font-weight:600; margin-top:1px;}
+.tb-right{display:flex; align-items:center; gap:12px;}
+.tb-search{display:flex; align-items:center; gap:8px; background:var(--white); border:1px solid var(--line); border-radius:10px; padding:9px 13px; min-width:220px;}
+.tb-search svg{width:14px; height:14px; stroke:var(--text-faint); fill:none; stroke-width:2;}
+.tb-search input{border:none; outline:none; background:transparent; font-size:12.5px; width:100%; color:var(--ink);}
+.icon-btn{position:relative; width:38px; height:38px; border-radius:10px; border:1px solid var(--line); background:var(--white); display:flex; align-items:center; justify-content:center;}
+.icon-btn svg{width:16px; height:16px; stroke:var(--ink); fill:none; stroke-width:1.8;}
+.icon-btn .ping{position:absolute; top:7px; right:8px; width:6px; height:6px; border-radius:50%; background:var(--brick); border:1.5px solid var(--white);}
+
+.tb-search-wrap{position:relative;}
+.tb-search-results{
+  position:absolute; top:calc(100% + 8px); left:0; right:0; z-index:90;
+  background:var(--white); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-lift);
+  padding:8px; display:none; max-height:380px; overflow-y:auto;
+}
+.tb-search-results.show{display:block;}
+.tsr-group{font-family:var(--font-mono); font-size:9.5px; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-faint); padding:9px 10px 5px;}
+.tsr-item{display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 10px; border-radius:9px; cursor:pointer;}
+.tsr-item:hover{background:var(--paper-2);}
+.tsr-item .t{font-weight:700; font-size:12.5px; color:var(--ink);}
+.tsr-item .s{font-size:11px; color:var(--text-faint); margin-top:1px;}
+.tsr-empty{padding:22px 10px; text-align:center; font-size:12.5px; color:var(--text-faint);}
+
+.notif-wrap{position:relative;}
+.notif-dropdown{
+  position:absolute; top:calc(100% + 10px); right:0; width:320px; z-index:90;
+  background:var(--white); border:1px solid var(--line); border-radius:15px; box-shadow:var(--shadow-lift);
+  padding:16px; display:none;
+}
+.notif-dropdown.show{display:block;}
+.notif-head{font-family:var(--font-display); font-weight:600; font-size:14.5px; color:var(--ink); margin-bottom:8px;}
+
+.content{padding:28px 30px 60px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* ===== KPI CARDS ===== */
+.kpi-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:22px;}
+.kpi-card{background:var(--white); border:1px solid var(--line); border-radius:15px; padding:20px; box-shadow:var(--shadow-card);}
+.kpi-card .top{display:flex; align-items:center; justify-content:space-between;}
+.kpi-card .lbl{font-size:12px; font-weight:700; color:var(--text-soft);}
+.kpi-card .ic{width:32px; height:32px; border-radius:9px; background:var(--paper-2); display:flex; align-items:center; justify-content:center;}
+.kpi-card .ic svg{width:15px; height:15px; stroke:var(--navy); fill:none; stroke-width:1.8;}
+.kpi-card .val{font-family:var(--font-mono); font-size:25px; font-weight:600; color:var(--ink); margin-top:12px;}
+.kpi-card .trend{font-size:11.5px; font-weight:700; margin-top:6px; display:flex; align-items:center; gap:4px;}
+.trend.up{color:var(--green);} .trend.down{color:var(--brick);}
+.trend svg{width:11px; height:11px; stroke:currentColor; fill:none; stroke-width:2.6;}
+
+/* ===== PANELS / CARDS ===== */
+.panel{background:var(--white); border:1px solid var(--line); border-radius:16px; padding:24px; box-shadow:var(--shadow-card);}
+.panel-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; gap:10px; flex-wrap:wrap;}
+.panel-head h3{font-size:16px;}
+.panel-head .link{font-size:12px; font-weight:700; color:var(--navy-2);}
+.row-2{display:grid; grid-template-columns:1.4fr 1fr; gap:16px; margin-bottom:16px; align-items:start;}
+
+/* bar chart */
+.bar-chart{display:flex; align-items:flex-end; gap:14px; height:170px; margin-top:8px;}
+.bar-chart .col{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:flex-end; height:100%;}
+.bar-chart .bar{width:100%; max-width:34px; border-radius:7px 7px 3px 3px; background:linear-gradient(180deg, var(--navy-2), var(--navy)); position:relative;}
+.bar-chart .bar.now{background:linear-gradient(180deg, var(--gold-light), var(--gold));}
+.bar-chart .val{position:absolute; top:-20px; left:50%; transform:translateX(-50%); font-family:var(--font-mono); font-size:9.5px; font-weight:700; color:var(--text-soft); white-space:nowrap;}
+.bar-chart .lbl{font-size:10.5px; color:var(--text-faint); margin-top:8px; font-weight:600;}
+
+.dist-row{display:flex; align-items:center; gap:12px; margin-bottom:13px;}
+.dist-row .name{width:96px; font-size:12px; font-weight:700; color:var(--ink); flex:0 0 auto;}
+.dist-row .track{flex:1; height:8px; border-radius:6px; background:var(--paper-2); overflow:hidden;}
+.dist-row .fill{height:100%; border-radius:6px; background:var(--navy);}
+.dist-row .pct{width:36px; text-align:right; font-family:var(--font-mono); font-size:11px; font-weight:700; color:var(--text-soft); flex:0 0 auto;}
+
+.activity-item{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line-soft);}
+.activity-item:last-child{border-bottom:none;}
+.activity-item .dot{width:8px; height:8px; border-radius:50%; margin-top:5px; flex:0 0 auto;}
+.activity-item .dot.blue{background:var(--navy-2);} .activity-item .dot.gold{background:var(--gold);} .activity-item .dot.green{background:var(--green);}
+.activity-item .t{font-size:12.5px; font-weight:600; color:var(--ink);}
+.activity-item .s{font-size:11px; color:var(--text-faint); margin-top:2px;}
+
+/* ===== TOOLBAR ===== */
+.toolbar{display:flex; align-items:center; gap:10px; margin-bottom:18px; flex-wrap:wrap;}
+.toolbar .search-box{display:flex; align-items:center; gap:8px; background:var(--white); border:1px solid var(--line); border-radius:10px; padding:10px 13px; min-width:230px; flex:1;}
+.toolbar .search-box svg{width:14px; height:14px; stroke:var(--text-faint); fill:none; stroke-width:2;}
+.toolbar .search-box input{border:none; outline:none; background:transparent; font-size:12.5px; width:100%;}
+.select-sm{padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--white); font-size:12.5px; font-weight:600; color:var(--ink);}
+.btn{display:inline-flex; align-items:center; gap:7px; font-weight:700; font-size:12.5px; border-radius:10px; padding:10px 16px; border:1.5px solid transparent;}
+.btn svg{width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2.3;}
+.btn-navy{background:var(--navy); color:var(--white);}
+.btn-navy:hover{background:#002d5f;}
+.btn-gold{background:linear-gradient(180deg, var(--gold-light), var(--gold)); color:#2B1D06;}
+.btn-outline{background:var(--white); border-color:var(--line); color:var(--ink);}
+.btn-outline:hover{border-color:var(--navy);}
+.btn-danger-outline{background:var(--white); border-color:rgba(162,62,46,0.35); color:var(--brick);}
+.btn-danger-outline:hover{background:rgba(162,62,46,0.06);}
+.btn-sm{padding:7px 12px; font-size:11.5px; border-radius:8px;}
+
+/* ===== TABLES ===== */
+.table-wrap{overflow-x:auto;}
+table{width:100%; border-collapse:collapse; font-size:12.5px;}
+thead th{
+  text-align:left; font-family:var(--font-mono); font-size:10px; text-transform:uppercase; letter-spacing:0.06em;
+  color:var(--text-faint); font-weight:600; padding:0 14px 10px; border-bottom:1px solid var(--line); white-space:nowrap;
+}
+tbody td{padding:14px 14px; border-bottom:1px solid var(--line-soft); color:var(--text); vertical-align:middle;}
+tbody tr:hover{background:rgba(0,57,118,0.025);}
+tbody tr:last-child td{border-bottom:none;}
+.cell-main{font-weight:700; color:var(--ink);}
+.cell-sub{font-size:11px; color:var(--text-faint); margin-top:2px;}
+.tag{display:inline-flex; font-size:10.5px; font-weight:700; padding:4px 9px; border-radius:7px; white-space:nowrap;}
+.tag-fp{background:rgba(0,57,118,0.08); color:var(--navy);}
+.tag-ecole{background:rgba(184,134,47,0.13); color:var(--gold);}
+.tag-examen{background:rgba(31,122,69,0.1); color:var(--green);}
+.status-pill{display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; padding:4px 10px; border-radius:20px;}
+.status-pill.on{background:var(--green-bg); color:var(--green);}
+.status-pill.off{background:rgba(139,147,158,0.16); color:var(--text-faint);}
+.status-pill.pending{background:rgba(184,134,47,0.14); color:var(--gold);}
+.status-pill.reject{background:rgba(162,62,46,0.1); color:var(--brick);}
+.row-actions{display:flex; gap:6px; justify-content:flex-end;}
+.act-btn{width:30px; height:30px; border-radius:8px; border:1px solid var(--line); background:var(--white); display:flex; align-items:center; justify-content:center;}
+.act-btn:hover{border-color:var(--navy-2);}
+.act-btn svg{width:13px; height:13px; stroke:var(--text-soft); fill:none; stroke-width:1.9;}
+.act-btn.danger{border-color:rgba(162,62,46,0.3); background:rgba(162,62,46,0.06);}
+.act-btn.danger svg{stroke:var(--brick);}
+.act-btn.danger:hover{border-color:var(--brick); background:rgba(162,62,46,0.12);}
+.act-btn.approve:hover{border-color:var(--green);}
+.act-btn.approve:hover svg{stroke:var(--green);}
+.empty-row td{text-align:center; color:var(--text-faint); padding:40px 0; font-size:13px;}
+.sujet-thumb{width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:700; font-size:14px; flex:0 0 auto;}
+.sujet-thumb.fp{background:rgba(0,57,118,0.1); color:var(--navy);}
+.sujet-thumb.ecole{background:rgba(184,134,47,0.14); color:var(--gold);}
+.sujet-thumb.examen{background:rgba(31,122,69,0.12); color:var(--green);}
+.pager{display:flex; align-items:center; justify-content:space-between; margin-top:16px; font-size:11.5px; color:var(--text-soft);}
+.pager-controls{display:flex; align-items:center; gap:10px;}
+.pager-btn{width:28px; height:28px; border-radius:8px; border:1px solid var(--line); background:var(--white); color:var(--ink); font-weight:700; display:inline-flex; align-items:center; justify-content:center;}
+.pager-btn:disabled{opacity:0.35; cursor:default;}
+.pager-btn:not(:disabled):hover{border-color:var(--navy-2);}
+
+/* ===== TABS ===== */
+.param-panel{display:none;}
+.param-panel.active{display:block;}
+.subtabs{display:inline-flex; background:var(--paper-2); border-radius:11px; padding:4px; gap:4px; margin-bottom:18px;}
+.subtabs button{padding:9px 16px; border-radius:8px; border:none; background:transparent; font-weight:700; font-size:12px; color:var(--text-soft);}
+.subtabs button.active{background:var(--white); color:var(--navy); box-shadow:0 1px 3px rgba(11,27,46,0.12);}
+
+/* ===== PRICING (admin) ===== */
+
+/* ===== FORM ELEMENTS ===== */
+.field-label{font-size:10.5px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em; margin:16px 0 7px; display:block;}
+.field-input, select.field-input{
+  width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--line); background:var(--paper);
+  font-size:13px; color:var(--ink); outline:none; font-family:var(--font-body);
+}
+.field-input:focus{border-color:var(--navy-2); background:var(--white);}
+.form-grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+.toggle-row{display:flex; align-items:center; justify-content:space-between; padding:12px 0;}
+.toggle-row .t{font-size:13px; font-weight:700; color:var(--ink);}
+.toggle-row .s{font-size:11.5px; color:var(--text-soft); margin-top:2px;}
+.switch{position:relative; width:42px; height:24px; border-radius:20px; background:var(--line); flex:0 0 auto; cursor:pointer;}
+.switch.on{background:var(--navy);}
+.switch .knob{position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:var(--white); transition:left .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.switch.on .knob{left:20px;}
+
+/* ===== MODALS ===== */
+.modal-backdrop{position:fixed; inset:0; background:rgba(4,13,26,0.55); z-index:100; display:none; align-items:flex-start; justify-content:center; padding:56px 20px; overflow-y:auto;}
+.modal-backdrop.show{display:flex;}
+.modal{background:var(--paper); border-radius:18px; max-width:520px; width:100%; padding:28px; box-shadow:var(--shadow-lift); position:relative;}
+.modal.wide{max-width:640px;}
+.modal-close{position:absolute; top:16px; right:16px; width:30px; height:30px; border-radius:50%; background:var(--white); border:1px solid var(--line); display:flex; align-items:center; justify-content:center;}
+.modal-close svg{width:13px; height:13px; stroke:var(--ink); fill:none; stroke-width:2;}
+.modal h3{font-size:19px;}
+.modal .sub{color:var(--text-soft); font-size:12px; margin-top:5px;}
+.modal-foot{display:flex; gap:10px; margin-top:24px;}
+.modal-foot .btn{flex:1; justify-content:center;}
+
+/* file preview row (contribution detail) */
+.file-chip{display:flex; align-items:center; gap:9px; border:1px solid var(--line); border-radius:10px; padding:11px 13px; font-size:12.5px; font-weight:600; color:var(--text); margin-top:8px; background:var(--white);}
+.file-row{
+  display:flex; align-items:center; gap:10px; border:1.5px dashed var(--line); border-radius:11px; padding:12px 14px;
+  font-size:12.5px; font-weight:600; color:var(--text-soft); cursor:pointer; margin-top:8px; background:var(--white);
+}
+.file-row svg{width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.8; flex:0 0 auto;}
+.file-row.filled{border-color:var(--green); border-style:solid; color:var(--green);}
+.file-row .req{margin-left:auto; font-size:10.5px; color:var(--text-faint); font-weight:700;}
+.file-chip .preview-link{margin-left:auto; font-size:11px; font-weight:700; color:var(--navy-2);}
+.doc-preview{display:none; margin-top:8px; padding:14px; border:1px dashed var(--line); border-radius:12px; background:var(--paper-2);}
+.doc-preview.show{display:block;}
+.doc-pages{display:flex; gap:8px;}
+.doc-page{width:44px; height:58px; background:var(--white); border:1px solid var(--line); border-radius:5px; display:flex; align-items:center; justify-content:center; font-family:var(--font-mono); font-size:11px; color:var(--text-faint); flex:0 0 auto;}
+.doc-preview-note{margin-top:10px; font-size:11px; color:var(--text-faint); line-height:1.5;}
+.file-chip svg{width:15px; height:15px; stroke:var(--navy); fill:none; stroke-width:1.8;}
+
+/* ===== TOAST ===== */
+.toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); z-index:200; background:var(--ink); color:var(--white); padding:12px 20px; border-radius:11px; font-size:13px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s ease; box-shadow:var(--shadow-lift);}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+/* ===== RESPONSIVE ===== */
+.sidebar-backdrop{display:none; position:fixed; inset:0; background:rgba(4,13,26,0.4); z-index:70;}
+@media (max-width: 1080px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr);}
+  .row-2{grid-template-columns:1fr;}
+}
+@media (max-width: 860px){
+  .sidebar{transform:translateX(-100%);}
+  body.sb-open .sidebar{transform:translateX(0);}
+  body.sb-open .sidebar-backdrop{display:block;}
+  .main{margin-left:0;}
+  .mobile-burger{display:flex;}
+  .tb-search{display:none;}
+  .form-grid-2{grid-template-columns:1fr;}
+}
+@media (max-width: 600px){
+  .content{padding:20px 16px 50px;}
+  .kpi-grid{grid-template-columns:1fr;}
+  .topbar{padding:0 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== ÉCRAN DE CONNEXION ===== -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-mark">A</div>
+    <h2>Annalo Admin</h2>
+    <p>Connecte-toi pour accéder au tableau de bord.</p>
+    <span class="field-label" style="margin-top:22px;">Email ou téléphone</span>
+    <input class="field-input" id="login-email" placeholder="admin@annalo.bj">
+    <span class="field-label">Mot de passe</span>
+    <input class="field-input" id="login-password" type="password" placeholder="••••••••">
+    <span class="field-label">Se connecter en tant que <span style="text-transform:none; font-weight:400;">(démo)</span></span>
+    <select class="field-input" id="login-role">
+      <option value="admin">Administrateur — accès complet</option>
+      <option value="moderateur">Modérateur — modération de contenu</option>
+    </select>
+    <button class="btn btn-gold" style="width:100%; margin-top:20px;" onclick="login()">Se connecter</button>
+    <div class="login-note">Démo interne — n'importe quels identifiants fonctionnent.</div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <div class="sidebar-backdrop" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="mark">A</div>
+      <div class="name">Annalo<small>Admin</small></div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-group-label">Aperçu</div>
+      <a class="sb-link active" data-page="overview" onclick="goPage('overview')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg>
+        Vue d'ensemble
+      </a>
+      <div class="sb-group-label">Contenu</div>
+      <a class="sb-link" data-page="catalogue" onclick="goPage('catalogue')">
+        <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 12h6M9 16h6"/></svg>
+        Catalogue
+      </a>
+      <a class="sb-link" data-page="categories" onclick="goPage('categories')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><path d="M17.5 14v7M14 17.5h7" stroke-linecap="round"/></svg>
+        Corps, écoles &amp; examens
+      </a>
+      <a class="sb-link" data-page="contributions" onclick="goPage('contributions')">
+        <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6-6 6 6"/><path d="M4 20h16"/></svg>
+        Contributions
+        <span class="sb-badge" id="sb-contrib-badge">0</span>
+      </a>
+      <a class="sb-link" data-page="annonces" onclick="goPage('annonces')">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        Annonces
+      </a>
+      <div class="sb-group-label">Activité</div>
+      <a class="sb-link" data-page="tarifs" data-role="admin" onclick="goPage('tarifs')">
+        <svg viewBox="0 0 24 24"><path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z"/><path d="M5 21h14M6 21V10M10 21V10M14 21V10M18 21V10"/></svg>
+        Tarifs des abonnements
+      </a>
+      <a class="sb-link" data-page="abonnements" onclick="goPage('abonnements')">
+        <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18" /></svg>
+        Abonnés
+      </a>
+      <a class="sb-link" data-page="utilisateurs" onclick="goPage('utilisateurs')">
+        <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="18" cy="8" r="2.5"/><path d="M16 13.5c2.6.3 4.5 2.6 4.5 5.5"/></svg>
+        Utilisateurs
+      </a>
+      <a class="sb-link" data-page="paiements" onclick="goPage('paiements')">
+        <svg viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4" stroke-linecap="round"/></svg>
+        Paiements
+      </a>
+      <div class="sb-group-label">Support</div>
+      <a class="sb-link" data-page="messages" onclick="goPage('messages')">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+        Messages
+        <span class="sb-badge" id="sb-msg-badge">0</span>
+      </a>
+      <div class="sb-group-label">Système</div>
+      <a class="sb-link" data-page="logs" onclick="goPage('logs')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2" stroke-linecap="round"/></svg>
+        Journal d'activité
+      </a>
+      <a class="sb-link" data-page="parametres" data-role="admin" onclick="goPage('parametres')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 15a1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.6a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Paramètres
+      </a>
+    </nav>
+    <div class="sb-foot">
+      <div class="sb-admin">
+        <div class="av">J</div>
+        <div class="txt">
+          <div class="n">Judicaël A.</div>
+          <div class="r">Administrateur</div>
+        </div>
+      </div>
+      <button class="sb-logout" onclick="logout()">
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 17l5-5-5-5M21 12H9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Se déconnecter
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-left">
+        <button class="mobile-burger" onclick="toggleSidebar()"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16" stroke-linecap="round"/></svg></button>
+        <div class="tb-title" id="tb-title">Vue d'ensemble<div class="sub" id="tb-sub">Aperçu général de la plateforme</div></div>
+      </div>
+      <div class="tb-right">
+        <div class="tb-search-wrap">
+          <div class="tb-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="topbar-search" placeholder="Rechercher…" oninput="handleTopbarSearch()" onfocus="handleTopbarSearch()"></div>
+          <div class="tb-search-results" id="tb-search-results"></div>
+        </div>
+        <div class="notif-wrap">
+          <button class="icon-btn" onclick="toggleNotifDropdown()">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+            <span class="ping" id="notif-ping" style="display:none"></span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown">
+            <div class="notif-head">Notifications</div>
+            <div id="notif-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ============ PAGE: OVERVIEW ============ -->
+      <section class="page active" id="page-overview">
+        <div class="toolbar" style="margin-bottom:14px;">
+          <span class="field-label" style="margin:0;">Période</span>
+          <select class="select-sm" id="overview-period" onchange="renderOverview()">
+            <option value="7">7 derniers jours</option>
+            <option value="30" selected>30 derniers jours</option>
+            <option value="90">90 derniers jours</option>
+          </select>
+        </div>
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="top"><span class="lbl">Revenus</span><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l9 4.5-9 4.5-9-4.5L12 3z"/><path d="M5 21h14M6 21V10M10 21V10M14 21V10M18 21V10"/></svg></div></div>
+            <div class="val" id="kpi-revenue">—</div>
+            <div class="trend up" id="kpi-revenue-trend"></div>
+          </div>
+          <div class="kpi-card">
+            <div class="top"><span class="lbl">Abonnés actifs</span><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6.5 6.5-6.5s6.5 2.9 6.5 6.5"/><circle cx="18" cy="8" r="2.5"/><path d="M16 13.5c2.6.3 4.5 2.6 4.5 5.5"/></svg></div></div>
+            <div class="val" id="kpi-subs">—</div>
+            <div class="trend up" id="kpi-subs-trend"></div>
+          </div>
+          <div class="kpi-card">
+            <div class="top"><span class="lbl">Sujets publiés</span><div class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 12h6M9 16h6"/></svg></div></div>
+            <div class="val" id="kpi-sujets">—</div>
+            <div class="trend up" id="kpi-sujets-trend"></div>
+          </div>
+          <div class="kpi-card">
+            <div class="top"><span class="lbl">Contributions en attente</span><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6-6 6 6"/><path d="M4 20h16"/></svg></div></div>
+            <div class="val" id="kpi-pending">—</div>
+            <div class="trend" style="color:var(--gold)">À modérer</div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="panel">
+            <div class="panel-head"><h3>Revenus — 6 derniers mois</h3><span class="link">FCFA</span></div>
+            <div class="bar-chart" id="revenue-chart"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Nouveaux utilisateurs — 6 derniers mois</h3></div>
+            <div class="bar-chart" id="users-chart"></div>
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div class="panel">
+            <div class="panel-head"><h3>Ventes par corps / école</h3></div>
+            <div id="dist-list"></div>
+          </div>
+          <div class="panel">
+            <div class="panel-head"><h3>Activité récente</h3></div>
+            <div id="activity-list"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>Contributions en attente</h3><span class="link" onclick="goPage('contributions')">Tout voir</span></div>
+          <div id="pending-preview"></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: CATALOGUE ============ -->
+      <section class="page" id="page-catalogue">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="catalogue-kpis"></div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="cat-search" placeholder="Rechercher un sujet…" oninput="renderCatalogueTable()"></div>
+          <select class="select-sm" id="cat-filter-groupe" onchange="renderCatalogueTable()">
+            <option value="tous">Tous les groupes</option>
+            <option value="Fonction publique">Fonction publique</option>
+            <option value="École publique">École publique</option>
+            <option value="Examens académiques">Examens académiques</option>
+          </select>
+          <select class="select-sm" id="cat-filter-statut" onchange="renderCatalogueTable()">
+            <option value="tous">Tous les statuts</option>
+            <option value="Publié">Publié</option>
+            <option value="Brouillon">Brouillon</option>
+          </select>
+          <button class="btn btn-navy" onclick="openSujetModal()">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            Ajouter un sujet
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Matière</th><th>Groupe</th><th>Niveau</th><th>Prix</th><th>Ventes</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="catalogue-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span id="cat-count">0 sujets</span><div class="pager-controls" id="catalogue-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: CORPS & ÉCOLES ============ -->
+      <section class="page" id="page-categories">
+        <div class="subtabs" id="cat-type-tabs">
+          <button class="active" data-v="corps" onclick="setCatTypeTab('corps')">Corps (fonction publique)</button>
+          <button data-v="ecoles" onclick="setCatTypeTab('ecoles')">Écoles publiques</button>
+          <button data-v="examens" onclick="setCatTypeTab('examens')">Examens académiques</button>
+        </div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="categorie-search" placeholder="Rechercher…" oninput="renderCategoriesTable()"></div>
+          <button class="btn btn-navy" data-role="admin" onclick="openCategorieModal()">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            <span id="categorie-add-label">Ajouter un corps</span>
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th id="categorie-th-nom">Corps</th><th>Description</th><th>Sujets liés</th><th></th></tr></thead>
+              <tbody id="categories-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: CONTRIBUTIONS ============ -->
+      <section class="page" id="page-contributions">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="contrib-kpis"></div>
+        <div class="subtabs" id="contrib-tabs">
+          <button class="active" data-v="tous" onclick="setContribTab('tous')">Toutes</button>
+          <button data-v="en_attente" onclick="setContribTab('en_attente')">En attente</button>
+          <button data-v="approuve" onclick="setContribTab('approuve')">Approuvées</button>
+          <button data-v="rejete" onclick="setContribTab('rejete')">Rejetées</button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Concours</th><th>Niveau</th><th>Matière</th><th>Contributeur</th><th>Date</th><th>Fichiers</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="contrib-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="contributions-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: ANNONCES ============ -->
+      <section class="page" id="page-annonces">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="annonces-kpis"></div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="ann-search" placeholder="Rechercher une annonce…" oninput="renderAnnoncesTable()"></div>
+          <select class="select-sm" id="ann-filter-kind" onchange="renderAnnoncesTable()">
+            <option value="tous">Toutes les catégories</option>
+            <option value="Fonction publique">Fonction publique</option>
+            <option value="École publique">École publique</option>
+          </select>
+          <select class="select-sm" id="ann-filter-statut" onchange="renderAnnoncesTable()">
+            <option value="tous">Tous les statuts</option>
+            <option value="open">Ouvert</option>
+            <option value="soon">Bientôt</option>
+            <option value="closed">Clos</option>
+          </select>
+          <button class="btn btn-navy" onclick="openAnnonceModal()">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            Nouvelle annonce
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Concours</th><th>Organisme</th><th>Catégorie</th><th>Échéance</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="annonces-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="annonces-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: TARIFS ============ -->
+      <section class="page" id="page-tarifs">
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:22px;" id="tarifs-kpis"></div>
+        <div class="subtabs" id="tarif-tabs">
+          <button class="active" data-v="examens" onclick="setTarifTab('examens')">Fonction publique</button>
+          <button data-v="concours" onclick="setTarifTab('concours')">Écoles publiques</button>
+          <button data-v="examens_academiques" onclick="setTarifTab('examens_academiques')">Examens académiques</button>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-navy" data-role="admin" onclick="openTarifModal()">
+            <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+            Ajouter un tarif
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Durée</th><th>Prix</th><th></th></tr></thead>
+              <tbody id="tarifs-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: ABONNEMENTS ============ -->
+      <section class="page" id="page-abonnements">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="abonnes-kpis"></div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="sub-search" placeholder="Rechercher un abonné…" oninput="renderSubs()"></div>
+          <select class="select-sm" id="sub-filter-groupe" onchange="renderSubs()">
+            <option value="tous">Toutes les catégories</option>
+            <option value="Fonction publique">Fonction publique</option>
+            <option value="École publique">École publique</option>
+            <option value="Examens académiques">Examens académiques</option>
+          </select>
+          <select class="select-sm" id="sub-filter-statut" onchange="renderSubs()">
+            <option value="tous">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="expiré">Expiré</option>
+          </select>
+          <button class="btn btn-outline" style="margin-left:auto" onclick="exportTableToCSV('subs-tbody','annalo-abonnes.csv')">
+            <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6"/><path d="M4 20h16" stroke-linecap="round"/></svg>
+            Exporter CSV
+          </button>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Abonnés</h3>
+            <span class="link" id="sub-count">—</span>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Utilisateur</th><th>Formule</th><th>Catégorie</th><th>Début</th><th>Fin</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="subs-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="abonnes-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: UTILISATEURS ============ -->
+      <section class="page" id="page-utilisateurs">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="users-kpis"></div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="user-search" placeholder="Rechercher un utilisateur…" oninput="renderUsersTable()"></div>
+          <select class="select-sm" id="user-filter-statut" onchange="renderUsersTable()">
+            <option value="tous">Tous les statuts</option>
+            <option value="actif">Actif</option>
+            <option value="suspendu">Suspendu</option>
+          </select>
+          <button class="btn btn-outline" style="margin-left:auto" onclick="exportTableToCSV('users-tbody','annalo-utilisateurs.csv')">
+            <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6"/><path d="M4 20h16" stroke-linecap="round"/></svg>
+            Exporter CSV
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Utilisateur</th><th>Contact</th><th>Ville</th><th>Inscrit le</th><th>Achats</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="users-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="utilisateurs-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: PAIEMENTS ============ -->
+      <section class="page" id="page-paiements">
+        <div class="toolbar" style="margin-bottom:14px;">
+          <span class="field-label" style="margin:0;">Période</span>
+          <select class="select-sm" id="pay-period" onchange="renderPaymentKpis()">
+            <option value="7">7 derniers jours</option>
+            <option value="30" selected>30 derniers jours</option>
+            <option value="90">90 derniers jours</option>
+          </select>
+        </div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="paiements-kpis"></div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="pay-search" placeholder="Rechercher une transaction…" oninput="renderPaymentsTable()"></div>
+          <select class="select-sm" id="pay-filter-statut" onchange="renderPaymentsTable()">
+            <option value="tous">Tous les statuts</option>
+            <option value="Réussi">Réussi</option>
+            <option value="Échoué">Échoué</option>
+          </select>
+          <button class="btn btn-outline" style="margin-left:auto" onclick="exportTableToCSV('payments-tbody','annalo-paiements.csv')">
+            <svg viewBox="0 0 24 24"><path d="M12 3v13M6 10l6 6 6-6"/><path d="M4 20h16" stroke-linecap="round"/></svg>
+            Exporter CSV
+          </button>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Date</th><th>Utilisateur</th><th>Description</th><th>Méthode</th><th>Montant</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="payments-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="paiements-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: MESSAGES ============ -->
+      <section class="page" id="page-messages">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr); margin-bottom:22px;" id="messages-kpis"></div>
+        <div class="subtabs" id="msg-tabs">
+          <button class="active" data-v="tous" onclick="setMessageTab('tous')">Tous</button>
+          <button data-v="nouveau" onclick="setMessageTab('nouveau')">Nouveaux</button>
+          <button data-v="en_cours" onclick="setMessageTab('en_cours')">En cours</button>
+          <button data-v="resolu" onclick="setMessageTab('resolu')">Résolus</button>
+        </div>
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="msg-search" placeholder="Rechercher un message…" oninput="renderMessagesTable()"></div>
+          <select class="select-sm" id="msg-filter-cat" onchange="renderMessagesTable()">
+            <option value="tous">Toutes les catégories</option>
+            <option value="Réclamation">Réclamation</option>
+            <option value="Question">Question</option>
+            <option value="Problème technique">Problème technique</option>
+            <option value="Suggestion">Suggestion</option>
+          </select>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Utilisateur</th><th>Sujet</th><th>Catégorie</th><th>Date</th><th>Statut</th><th></th></tr></thead>
+              <tbody id="messages-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="messages-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: JOURNAL D'ACTIVITÉ ============ -->
+      <section class="page" id="page-logs">
+        <div class="toolbar">
+          <div class="search-box"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5" stroke-linecap="round"/></svg><input id="log-search" placeholder="Rechercher une action…" oninput="renderLogsTable()"></div>
+          <select class="select-sm" id="log-filter-auteur" onchange="renderLogsTable()">
+            <option value="tous">Tous les membres</option>
+          </select>
+        </div>
+        <div class="panel">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Membre</th><th>Action</th><th>Cible</th><th>Date</th></tr></thead>
+              <tbody id="logs-tbody"></tbody>
+            </table>
+          </div>
+          <div class="pager"><span></span><div class="pager-controls" id="logs-pager"></div></div>
+        </div>
+      </section>
+
+      <!-- ============ PAGE: PARAMÈTRES ============ -->
+      <section class="page" id="page-parametres">
+        <div class="subtabs" id="param-tabs">
+          <button class="active" data-v="general" onclick="setParamTab('general')">Général</button>
+          <button data-v="securite" onclick="setParamTab('securite')">Sécurité</button>
+          <button data-v="notifications" onclick="setParamTab('notifications')">Notifications</button>
+          <button data-v="equipe" onclick="setParamTab('equipe')">Équipe</button>
+        </div>
+
+        <div class="param-panel active" id="param-general">
+          <div class="panel">
+            <div class="panel-head"><h3>Informations du site</h3></div>
+            <div class="form-grid-2">
+              <div><span class="field-label">Nom du site</span><input class="field-input" value="Annalo"></div>
+              <div><span class="field-label">Ville / pays</span><input class="field-input" value="Abomey-Calavi, Bénin"></div>
+              <div><span class="field-label">Email de contact</span><input class="field-input" value="contact@annalo.bj"></div>
+              <div><span class="field-label">Téléphone</span><input class="field-input" value="+229 00 00 00 00"></div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t">Mode maintenance</div><div class="s">Rend le site inaccessible aux visiteurs</div></div>
+              <div class="switch" id="sw-maint" onclick="toggleNamedSwitch(this,'Mode maintenance')"><div class="knob"></div></div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t">Ouvrir les contributions publiques</div><div class="s">Autoriser l'envoi de nouveaux sujets</div></div>
+              <div class="switch on" id="sw-contrib" onclick="toggleNamedSwitch(this,'Contributions publiques')"><div class="knob"></div></div>
+            </div>
+            <button class="btn btn-navy" style="margin-top:18px;" onclick="showToast('Paramètres enregistrés')">Enregistrer</button>
+          </div>
+        </div>
+
+        <div class="param-panel" id="param-securite">
+          <div class="row-2">
+            <div class="panel">
+              <div class="panel-head"><h3>Changer le mot de passe</h3></div>
+              <span class="field-label">Mot de passe actuel</span>
+              <input class="field-input" type="password" placeholder="••••••••">
+              <span class="field-label">Nouveau mot de passe</span>
+              <input class="field-input" id="sec-new-pass" type="password" placeholder="••••••••">
+              <span class="field-label">Confirmer le nouveau mot de passe</span>
+              <input class="field-input" id="sec-confirm-pass" type="password" placeholder="••••••••">
+              <button class="btn btn-navy" style="margin-top:18px;" onclick="changePassword()">Mettre à jour le mot de passe</button>
+            </div>
+            <div class="panel">
+              <div class="panel-head"><h3>Protection du compte</h3></div>
+              <div class="toggle-row">
+                <div><div class="t">Authentification à deux facteurs</div><div class="s">Code de vérification envoyé par SMS à la connexion</div></div>
+                <div class="switch" onclick="toggleNamedSwitch(this,'Authentification à deux facteurs')"><div class="knob"></div></div>
+              </div>
+              <div class="toggle-row">
+                <div><div class="t">Alerte de connexion inhabituelle</div><div class="s">Email en cas de connexion depuis un nouvel appareil</div></div>
+                <div class="switch on" onclick="toggleNamedSwitch(this,'Alerte de connexion')"><div class="knob"></div></div>
+              </div>
+              <div class="panel-head" style="margin-top:20px;"><h3>Sessions actives</h3></div>
+              <div class="toggle-row"><div><div class="t">Chrome — Abomey-Calavi</div><div class="s">Session actuelle</div></div><span class="status-pill on">Actif</span></div>
+              <div class="toggle-row"><div><div class="t">Application mobile — Cotonou</div><div class="s">Dernière activité il y a 2 jours</div></div><span class="status-pill off">Inactif</span></div>
+              <button class="btn btn-danger-outline" style="margin-top:10px; width:100%;" onclick="showToast('Toutes les autres sessions ont été déconnectées')">Déconnecter les autres sessions</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="param-panel" id="param-notifications">
+          <div class="panel">
+            <div class="panel-head"><h3>Notifications automatiques</h3></div>
+            <div class="toggle-row">
+              <div><div class="t">Email de bienvenue</div><div class="s">Envoyé automatiquement à chaque nouvelle inscription</div></div>
+              <div class="switch on" onclick="toggleNamedSwitch(this,'Email de bienvenue')"><div class="knob"></div></div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t">Relance abonnement expiré</div><div class="s">SMS envoyé 3 jours avant l'expiration d'un abonnement</div></div>
+              <div class="switch on" onclick="toggleNamedSwitch(this,'Relance abonnement expiré')"><div class="knob"></div></div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t">Accusé de réception des réclamations</div><div class="s">Email automatique dès qu'un message est reçu</div></div>
+              <div class="switch on" onclick="toggleNamedSwitch(this,'Accusé de réception')"><div class="knob"></div></div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t">Notification de nouvelle contribution</div><div class="s">Email à l'équipe de modération</div></div>
+              <div class="switch on" onclick="toggleNamedSwitch(this,'Notification de contribution')"><div class="knob"></div></div>
+            </div>
+            <div class="toggle-row">
+              <div><div class="t">Rappel de concours à venir</div><div class="s">SMS aux abonnés 7 jours avant une échéance suivie</div></div>
+              <div class="switch" onclick="toggleNamedSwitch(this,'Rappel de concours')"><div class="knob"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="param-panel" id="param-equipe">
+          <div class="panel">
+            <div class="panel-head"><h3>Rôles d'équipe</h3></div>
+            <div id="team-list"></div>
+            <button class="btn btn-outline" style="margin-top:8px;" onclick="openInviteModal()">+ Inviter un membre</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: SUJET ===== -->
+<div class="modal-backdrop" id="modal-sujet" onclick="if(event.target===this) closeModal('modal-sujet')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-sujet')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="sujet-modal-title">Ajouter un sujet</h3>
+    <div class="sub">Renseigne les informations du sujet de concours.</div>
+    <input type="hidden" id="sujet-id">
+    <span class="field-label">Groupe</span>
+    <select class="field-input" id="sujet-groupe" onchange="onSujetGroupeChange()">
+      <option value="Fonction publique">Fonction publique</option>
+      <option value="École publique">École publique</option>
+      <option value="Examens académiques">Examens académiques</option>
+    </select>
+    <div class="form-grid-2">
+      <div><span class="field-label" id="sujet-corps-label">Corps</span><select class="field-input" id="sujet-corps"></select></div>
+      <div><span class="field-label" id="sujet-niveau-wrap-label">Niveau</span><select class="field-input" id="sujet-niveau">
+          <option value="BEPC">BEPC</option><option value="BAC">BAC</option><option value="Licence">Licence</option><option value="Master">Master</option>
+        </select></div>
+    </div>
+    <span class="field-label">Matière</span>
+    <input class="field-input" id="sujet-titre" placeholder="Ex. Culture générale">
+    <span class="field-label">Session / précisions</span>
+    <input class="field-input" id="sujet-meta" placeholder="Ex. Concours Police · 2025 · Catégorie C">
+
+    <span class="field-label">Fichiers</span>
+    <label class="file-row" id="sujet-row-fichier">
+      <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 12h6M9 16h6"/></svg>
+      <span id="sujet-row-fichier-label">Importer le sujet (PDF)</span>
+      <span class="req">Obligatoire</span>
+      <input type="file" accept="application/pdf" style="display:none" onchange="fileChosenSujet(this,'sujet-row-fichier','sujet-row-fichier-label','Sujet')">
+    </label>
+    <label class="file-row" id="sujet-row-corrige">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+      <span id="sujet-row-corrige-label">Importer le corrigé (PDF)</span>
+      <span class="req">Optionnel</span>
+      <input type="file" accept="application/pdf" style="display:none" onchange="fileChosenSujet(this,'sujet-row-corrige','sujet-row-corrige-label','Corrigé')">
+    </label>
+
+    <div class="form-grid-2">
+      <div><span class="field-label">Prix — sujet seul (FCFA)</span><input class="field-input" id="sujet-prix" type="number" placeholder="200"></div>
+      <div><span class="field-label">Prix — sujet + corrigé (FCFA)</span><input class="field-input" id="sujet-prix-corrige" type="number" placeholder="Optionnel"></div>
+    </div>
+    <div class="form-grid-2">
+      <div><span class="field-label">Statut</span><select class="field-input" id="sujet-statut">
+          <option value="Publié">Publié</option><option value="Brouillon">Brouillon</option>
+        </select></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-sujet')">Annuler</button>
+      <button class="btn btn-navy" onclick="saveSujet()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: CORPS / ÉCOLE ===== -->
+<div class="modal-backdrop" id="modal-categorie" onclick="if(event.target===this) closeModal('modal-categorie')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-categorie')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="categorie-modal-title">Ajouter un corps</h3>
+    <div class="sub" id="categorie-modal-sub">Crée un nouveau corps de la fonction publique.</div>
+    <input type="hidden" id="categorie-id">
+    <span class="field-label" id="categorie-nom-label">Nom du corps</span>
+    <input class="field-input" id="categorie-nom" placeholder="Ex. Police">
+    <span class="field-label">Description</span>
+    <input class="field-input" id="categorie-desc" placeholder="Ex. Concours de recrutement dans la Police nationale.">
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-categorie')">Annuler</button>
+      <button class="btn btn-navy" onclick="saveCategorie()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ANNONCE ===== -->
+<div class="modal-backdrop" id="modal-annonce" onclick="if(event.target===this) closeModal('modal-annonce')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-annonce')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="annonce-modal-title">Nouvelle annonce</h3>
+    <input type="hidden" id="annonce-id">
+    <span class="field-label">Nom du concours</span>
+    <input class="field-input" id="annonce-nom" placeholder="Ex. Concours Police">
+    <span class="field-label">Organisme</span>
+    <input class="field-input" id="annonce-org" placeholder="Ex. Police Nationale">
+    <div class="form-grid-2">
+      <div><span class="field-label">Catégorie</span><select class="field-input" id="annonce-kind">
+          <option value="Fonction publique">Fonction publique</option><option value="École publique">École publique</option>
+        </select></div>
+      <div><span class="field-label">Statut</span><select class="field-input" id="annonce-statut">
+          <option value="open">Ouvert</option><option value="soon">Bientôt</option><option value="closed">Clos</option>
+        </select></div>
+    </div>
+    <div class="form-grid-2">
+      <div><span class="field-label">Échéance (texte)</span><input class="field-input" id="annonce-foot" placeholder="Épreuve écrite · Sept. 2026"></div>
+      <div><span class="field-label">Compte à rebours</span><input class="field-input" id="annonce-cd" placeholder="42 jours"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-annonce')">Annuler</button>
+      <button class="btn btn-navy" onclick="saveAnnonce()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: TARIF ===== -->
+<div class="modal-backdrop" id="modal-tarif" onclick="if(event.target===this) closeModal('modal-tarif')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-tarif')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="tarif-modal-title">Ajouter un tarif</h3>
+    <div class="sub">Définis une formule d'abonnement.</div>
+    <input type="hidden" id="tarif-index">
+    <span class="field-label">Catégorie</span>
+    <select class="field-input" id="tarif-groupe">
+      <option value="examens">Fonction publique</option>
+      <option value="concours">Écoles publiques</option>
+      <option value="examens_academiques">Examens académiques</option>
+    </select>
+    <div class="form-grid-2">
+      <div><span class="field-label">Durée</span><input class="field-input" id="tarif-dur" placeholder="Ex. 1 mois"></div>
+      <div><span class="field-label">Prix (FCFA)</span><input class="field-input" id="tarif-prix" type="number" placeholder="1000"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-tarif')">Annuler</button>
+      <button class="btn btn-navy" onclick="saveTarif()">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: DÉTAIL CONTRIBUTION ===== -->
+<div class="modal-backdrop" id="modal-contrib-detail" onclick="if(event.target===this) closeModal('modal-contrib-detail')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-contrib-detail')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <div id="cd-statut-badge"></div>
+    <h3 id="cd-nom" style="margin-top:10px;">—</h3>
+    <div class="sub" id="cd-org">—</div>
+
+    <div class="form-grid-2" style="margin-top:20px;">
+      <div><span class="field-label">Niveau</span><div class="cell-main" id="cd-niveau">—</div></div>
+      <div><span class="field-label">Matière</span><div class="cell-main" id="cd-matiere">—</div></div>
+      <div><span class="field-label">Session</span><div class="cell-main" id="cd-session">—</div></div>
+      <div><span class="field-label">Date d'envoi</span><div class="cell-main" id="cd-date">—</div></div>
+    </div>
+    <span class="field-label">Contributeur</span>
+    <div class="cell-main" id="cd-auteur">—</div>
+
+    <span class="field-label">Fichiers joints</span>
+    <div class="file-chip" style="cursor:pointer;" onclick="togglePreview('sujet')">
+      <svg viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6z"/><path d="M9 12h6M9 16h6"/></svg>
+      <span>Sujet — fichier.pdf</span>
+      <span class="preview-link">Aperçu</span>
+    </div>
+    <div class="doc-preview" id="preview-sujet">
+      <div class="doc-pages"><div class="doc-page">1</div><div class="doc-page">2</div><div class="doc-page">3</div></div>
+      <div class="doc-preview-note">Aperçu simplifié — le fichier complet est vérifié avant publication au catalogue.</div>
+    </div>
+    <div class="file-chip" id="cd-corrige" style="cursor:pointer;" onclick="togglePreview('corrige')">
+      <svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+      <span>Corrigé — fichier.pdf</span>
+      <span class="preview-link">Aperçu</span>
+    </div>
+    <div class="doc-preview" id="preview-corrige">
+      <div class="doc-pages"><div class="doc-page">1</div><div class="doc-page">2</div></div>
+      <div class="doc-preview-note">Aperçu simplifié — le corrigé complet est vérifié avant publication au catalogue.</div>
+    </div>
+
+    <div class="form-grid-2" id="cd-prix-grid">
+      <div><span class="field-label">Prix — sujet seul (FCFA)</span><input class="field-input" id="cd-prix-sujet" type="number" placeholder="200"></div>
+      <div id="cd-prix-corrige-wrap" style="display:none"><span class="field-label">Prix — sujet + corrigé (FCFA)</span><input class="field-input" id="cd-prix-corrige" type="number" placeholder="300"></div>
+    </div>
+    <div class="sub" style="margin-top:6px;" id="cd-prix-note">Ce prix sera appliqué au sujet lors de sa publication au catalogue.</div>
+
+    <div class="modal-foot" style="flex-direction:column; gap:10px;">
+      <div style="display:flex; gap:10px; width:100%;">
+        <button class="btn btn-outline" style="flex:1; justify-content:center;" onclick="rejectContrib()">Rejeter</button>
+        <button class="btn btn-navy" style="flex:1; justify-content:center;" onclick="approveContrib()">Approuver &amp; publier</button>
+      </div>
+      <button class="btn btn-danger-outline" style="width:100%; justify-content:center;" onclick="deleteContrib()">Supprimer définitivement</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: DÉTAIL ABONNÉ ===== -->
+<div class="modal-backdrop" id="modal-sub-detail" onclick="if(event.target===this) closeModal('modal-sub-detail')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-sub-detail')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="sub-detail-nom">—</h3>
+    <div class="sub" id="sub-detail-formule">—</div>
+    <div class="form-grid-2" style="margin-top:18px;">
+      <div><span class="field-label">Catégorie</span><div class="cell-main" id="sub-detail-groupe">—</div></div>
+      <div><span class="field-label">Montant</span><div class="cell-main" id="sub-detail-montant">—</div></div>
+      <div><span class="field-label">Début</span><div class="cell-main" id="sub-detail-debut">—</div></div>
+      <div><span class="field-label">Fin</span><div class="cell-main" id="sub-detail-fin">—</div></div>
+    </div>
+    <span class="field-label">Statut</span>
+    <div id="sub-detail-statut"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger-outline" data-role="admin" onclick="deleteSubFromModal()">Supprimer l'abonnement</button>
+      <button class="btn btn-navy" onclick="closeModal('modal-sub-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: DÉTAIL PAIEMENT ===== -->
+<div class="modal-backdrop" id="modal-payment-detail" onclick="if(event.target===this) closeModal('modal-payment-detail')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-payment-detail')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="pay-detail-montant">—</h3>
+    <div class="sub" id="pay-detail-desc">—</div>
+    <div class="form-grid-2" style="margin-top:18px;">
+      <div><span class="field-label">Utilisateur</span><div class="cell-main" id="pay-detail-user">—</div></div>
+      <div><span class="field-label">Date</span><div class="cell-main" id="pay-detail-date">—</div></div>
+      <div><span class="field-label">Méthode</span><div class="cell-main" id="pay-detail-methode">—</div></div>
+      <div><span class="field-label">Référence</span><div class="cell-main" id="pay-detail-ref">—</div></div>
+    </div>
+    <span class="field-label">Statut</span>
+    <div id="pay-detail-statut"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger-outline" data-role="admin" onclick="deletePaymentFromModal()">Supprimer la transaction</button>
+      <button class="btn btn-navy" onclick="closeModal('modal-payment-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: FICHE UTILISATEUR ===== -->
+<div class="modal-backdrop" id="modal-user-detail" onclick="if(event.target===this) closeModal('modal-user-detail')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-user-detail')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3 id="user-detail-name">—</h3>
+    <div class="sub" id="user-detail-meta">—</div>
+    <div class="toggle-row">
+      <div><div class="t">Contact</div><div class="s" id="user-detail-contact">—</div></div>
+    </div>
+    <div class="toggle-row">
+      <div><div class="t">Achats effectués</div><div class="s" id="user-detail-achats">—</div></div>
+    </div>
+    <div class="toggle-row">
+      <div><div class="t">Statut du compte</div></div>
+      <div id="user-detail-statut"></div>
+    </div>
+    <span class="field-label">Dernières transactions</span>
+    <div id="user-detail-history"></div>
+    <div class="modal-foot">
+      <button class="btn btn-danger-outline" data-role="admin" onclick="toggleUserStatusFromModal()">Suspendre / réactiver</button>
+      <button class="btn btn-navy" onclick="closeModal('modal-user-detail')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: DÉTAIL MESSAGE ===== -->
+<div class="modal-backdrop" id="modal-message-detail" onclick="if(event.target===this) closeModal('modal-message-detail')">
+  <div class="modal wide">
+    <button class="modal-close" onclick="closeModal('modal-message-detail')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <div id="msg-detail-badges" style="display:flex; gap:8px;"></div>
+    <h3 id="msg-detail-sujet" style="margin-top:10px;">—</h3>
+    <div class="sub" id="msg-detail-meta">—</div>
+
+    <div class="form-grid-2" style="margin-top:18px;">
+      <div><span class="field-label">Utilisateur</span><div class="cell-main" id="msg-detail-nom">—</div></div>
+      <div><span class="field-label">Contact</span><div class="cell-main" id="msg-detail-contact">—</div></div>
+    </div>
+
+    <span class="field-label">Message</span>
+    <div class="file-chip" style="align-items:flex-start; font-weight:500; line-height:1.6; white-space:pre-wrap;" id="msg-detail-corps">—</div>
+
+    <span class="field-label">Réponse</span>
+    <textarea class="field-input" id="msg-detail-reponse" rows="3" placeholder="Écris une réponse à envoyer à l'utilisateur…"></textarea>
+    <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="sendMessageReply()">Envoyer la réponse</button>
+
+    <div class="modal-foot" style="flex-direction:column; gap:10px;">
+      <div style="display:flex; gap:10px; width:100%;">
+        <button class="btn btn-outline" style="flex:1; justify-content:center;" onclick="setMessageStatus('en_cours')">Marquer en cours</button>
+        <button class="btn btn-navy" style="flex:1; justify-content:center;" onclick="setMessageStatus('resolu')">Marquer résolu</button>
+      </div>
+      <button class="btn btn-danger-outline" style="width:100%; justify-content:center;" onclick="deleteMessageFromModal()">Supprimer le message</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: INVITER UN MEMBRE ===== -->
+<div class="modal-backdrop" id="modal-invite" onclick="if(event.target===this) closeModal('modal-invite')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-invite')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3>Inviter un membre</h3>
+    <div class="sub">Donne accès au tableau de bord à un collaborateur.</div>
+    <span class="field-label">Nom complet</span>
+    <input class="field-input" id="invite-nom" placeholder="Ex. Falilath D.">
+    <span class="field-label">Email</span>
+    <input class="field-input" id="invite-email" type="email" placeholder="prenom@annalo.bj">
+    <span class="field-label">Rôle</span>
+    <select class="field-input" id="invite-role">
+      <option value="Modérateur">Modérateur</option>
+      <option value="Administrateur">Administrateur</option>
+    </select>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-invite')">Annuler</button>
+      <button class="btn btn-navy" onclick="sendInvite()">Envoyer l'invitation</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: DÉCONNEXION ===== -->
+<div class="modal-backdrop" id="modal-logout" onclick="if(event.target===this) closeModal('modal-logout')">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-logout')"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/></svg></button>
+    <h3>Se déconnecter ?</h3>
+    <div class="sub">Tu devras te reconnecter pour accéder au tableau de bord.</div>
+    <div class="modal-foot">
+      <button class="btn btn-outline" onclick="closeModal('modal-logout')">Annuler</button>
+      <button class="btn btn-navy" onclick="confirmLogout()">Se déconnecter</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ÉCRAN DÉCONNECTÉ ===== -->
+<div class="logout-screen" id="logout-screen">
+  <div class="mark">A</div>
+  <h2>À bientôt, Judicaël</h2>
+  <p>Tu as été déconnecté du tableau de bord Annalo Admin.</p>
+  <button class="btn btn-gold" onclick="reLogin()">Se reconnecter</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============ PAGINATION ============ */
+const PAGE_SIZE = 5;
+let PAGE_STATE = {catalogue:1, contributions:1, annonces:1, utilisateurs:1, paiements:1, messages:1, abonnes:1, logs:1};
+const RENDER_MAP = {};
+function paginate(key, rows){
+  const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  if(PAGE_STATE[key] > totalPages) PAGE_STATE[key] = totalPages;
+  if(PAGE_STATE[key] < 1) PAGE_STATE[key] = 1;
+  const start = (PAGE_STATE[key] - 1) * PAGE_SIZE;
+  return {pageRows: rows.slice(start, start + PAGE_SIZE), totalPages, page: PAGE_STATE[key]};
+}
+function renderPager(elId, key, totalPages, page){
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.innerHTML = `
+    <button class="pager-btn" ${page<=1?'disabled':''} onclick="changePage('${key}',-1)">‹</button>
+    <span>Page ${page} / ${totalPages}</span>
+    <button class="pager-btn" ${page>=totalPages?'disabled':''} onclick="changePage('${key}',1)">›</button>
+  `;
+}
+function changePage(key, delta){
+  PAGE_STATE[key] += delta;
+  if(RENDER_MAP[key]) RENDER_MAP[key]();
+}
+RENDER_MAP.catalogue = () => renderCatalogueTable();
+RENDER_MAP.contributions = () => renderContribTable();
+RENDER_MAP.annonces = () => renderAnnoncesTable();
+RENDER_MAP.utilisateurs = () => renderUsersTable();
+RENDER_MAP.paiements = () => renderPaymentsTable();
+RENDER_MAP.messages = () => renderMessagesTable();
+RENDER_MAP.abonnes = () => renderSubs();
+RENDER_MAP.logs = () => renderLogsTable();
+
+/* ============ DATA ============ */
+let SUJETS = [
+  {id:1, groupe:'Fonction publique', corps:'Police', niveau:'BEPC', titre:'Culture générale', meta:'Concours Police · 2025 · Catégorie D', prix:200, statut:'Publié', ventes:64},
+  {id:2, groupe:'Fonction publique', corps:'Police', niveau:'BAC', titre:'Anglais', meta:'Concours Police · 2024 · Catégorie C', prix:200, statut:'Publié', ventes:41},
+  {id:3, groupe:'Fonction publique', corps:'Douanes', niveau:'Licence', titre:'Mathématiques', meta:'Concours Douanes · 2025 · Catégorie B', prix:250, statut:'Publié', ventes:57},
+  {id:4, groupe:'Fonction publique', corps:'Impôts', niveau:'Licence', titre:'Mathématiques', meta:'Concours Impôts · 2025 · Catégorie B', prix:250, statut:'Publié', ventes:33},
+  {id:5, groupe:'Fonction publique', corps:'Trésor', niveau:'BAC', titre:'Comptabilité publique', meta:'Concours Trésor · 2024 · Catégorie C', prix:200, statut:'Publié', ventes:22},
+  {id:6, groupe:'Fonction publique', corps:'Eaux & Forêts', niveau:'BAC', titre:'Sciences naturelles', meta:'Concours Eaux & Forêts · 2024 · Catégorie C', prix:200, statut:'Publié', ventes:18},
+  {id:7, groupe:'Fonction publique', corps:'Greffier', niveau:'Licence', titre:'Droit civil', meta:'Concours Greffier · 2025 · Catégorie B', prix:250, statut:'Publié', ventes:29},
+  {id:8, groupe:'Fonction publique', corps:'Ministères', niveau:'Licence', titre:'Informatique', meta:'Concours Ministères · Analyste-programmeur · 2025', prix:250, statut:'Publié', ventes:47},
+  {id:9, groupe:'Fonction publique', corps:'Ministères', niveau:'Licence', titre:'Finances publiques', meta:'Concours Ministères · Contrôleur des finances · 2025', prix:250, statut:'Publié', ventes:36},
+  {id:10, groupe:'Fonction publique', corps:'Ministères', niveau:'BAC', titre:'Secrétariat', meta:'Concours Ministères · Secrétaire de direction · 2025', prix:200, statut:'Brouillon', ventes:0},
+  {id:11, groupe:'Fonction publique', corps:'Ministères', niveau:'Master', titre:'Droit public', meta:'Concours Ministères · Conseiller juridique · 2025', prix:300, statut:'Publié', ventes:14},
+  {id:12, groupe:'École publique', corps:'ENAM', niveau:'—', titre:'Culture générale', meta:'Concours ENAM · 2025', prix:250, statut:'Publié', ventes:52},
+  {id:13, groupe:'École publique', corps:'ENEAM', niveau:'—', titre:'Mathématiques', meta:'Concours ENEAM · 2025', prix:250, statut:'Publié', ventes:31},
+  {id:14, groupe:'École publique', corps:'EPAC', niveau:'—', titre:'Mathématiques', meta:'Concours EPAC · 2025', prix:250, statut:'Publié', ventes:38},
+  {id:15, groupe:'École publique', corps:'IFSIO', niveau:'—', titre:'Biologie', meta:'Concours IFSIO · 2024', prix:250, statut:'Publié', ventes:19},
+  {id:16, groupe:'École publique', corps:'INJEPS', niveau:'—', titre:'Sciences physiques', meta:'Concours INJEPS · 2024', prix:250, statut:'Publié', ventes:11},
+  {id:17, groupe:'École publique', corps:'ENI', niveau:'—', titre:'Pédagogie générale', meta:'Concours ENI · 2025', prix:250, statut:'Brouillon', ventes:0},
+  {id:18, groupe:'Examens académiques', corps:'CEP', niveau:'—', titre:'Mathématiques', meta:'Examen CEP · Session 2025', prix:150, statut:'Publié', ventes:73},
+  {id:19, groupe:'Examens académiques', corps:'BEPC', niveau:'—', titre:'Français', meta:'Examen BEPC · Session 2025', prix:150, statut:'Publié', ventes:66},
+  {id:20, groupe:'Examens académiques', corps:'BEPC', niveau:'—', titre:'Histoire-Géographie', meta:'Examen BEPC · Session 2024', prix:150, statut:'Publié', ventes:42},
+  {id:21, groupe:'Examens académiques', corps:'BAC', niveau:'—', titre:'Philosophie', meta:'Examen BAC · Série A · 2025', prix:200, statut:'Publié', ventes:58},
+  {id:22, groupe:'Examens académiques', corps:'BAC', niveau:'—', titre:'Physique-Chimie', meta:'Examen BAC · Série D · 2025', prix:200, statut:'Publié', ventes:49},
+  {id:23, groupe:'Examens académiques', corps:'CAP', niveau:'—', titre:'Technologie', meta:'Examen CAP · Session 2024', prix:180, statut:'Brouillon', ventes:0},
+];
+let sujetIdCounter = 24;
+
+let CORPS = [
+  {id:1, nom:'Police', desc:"Concours de recrutement dans la Police nationale."},
+  {id:2, nom:'Douanes', desc:"Concours d'agents et d'inspecteurs des douanes."},
+  {id:3, nom:'Eaux & Forêts', desc:"Concours des corps forestiers et de l'environnement."},
+  {id:4, nom:'Greffier', desc:"Concours des greffes et parquets."},
+  {id:5, nom:'Impôts', desc:"Concours des régies financières de l'État."},
+  {id:6, nom:'Trésor', desc:"Concours de la comptabilité publique."},
+  {id:7, nom:'Ministères', desc:"Concours directs des différents ministères."},
+];
+let corpsIdCounter = 8;
+
+let ECOLES = [
+  {id:1, nom:'ENAM', desc:"École Nationale d'Administration et de Magistrature."},
+  {id:2, nom:'ENEAM', desc:"École Nationale d'Économie Appliquée et de Management."},
+  {id:3, nom:'EPAC', desc:"École Polytechnique d'Abomey-Calavi."},
+  {id:4, nom:'IFSIO', desc:"Institut de Formation en Soins Infirmiers et Obstétricaux."},
+  {id:5, nom:'INJEPS', desc:"Institut National de la Jeunesse, de l'Éducation Physique et du Sport."},
+  {id:6, nom:'ENI', desc:"École Normale Intégrée."},
+];
+let ecoleIdCounter = 7;
+let EXAMENS = [
+  {id:1, nom:'CEP', desc:"Certificat d'Études Primaires — fin du cycle primaire."},
+  {id:2, nom:'BEPC', desc:"Brevet d'Étude du Premier Cycle — fin du premier cycle secondaire."},
+  {id:3, nom:'BAC', desc:"Baccalauréat — fin du second cycle secondaire."},
+  {id:4, nom:'CAP', desc:"Certificat d'Aptitude Professionnelle — enseignement technique."},
+  {id:5, nom:'DT', desc:"Diplôme de Technicien — enseignement technique supérieur court."},
+];
+let examenIdCounter = 6;
+let catTypeTab = 'corps';
+
+let CONTRIBUTIONS = [
+  {id:1, nom:'Concours Douanes', niveau:'BAC', matiere:'Culture générale', session:'2025', auteur:'Rachidi A.', date:'10 août 2026', statut:'en_attente', corrige:true},
+  {id:2, nom:'Concours ENEAM', niveau:'Licence', matiere:'Mathématiques', session:'2025', auteur:'Falilath D.', date:'09 août 2026', statut:'en_attente', corrige:false},
+  {id:3, nom:'Concours Trésor', niveau:'BAC', matiere:'Comptabilité publique', session:'2024', auteur:'Ismaël K.', date:'07 août 2026', statut:'approuve', corrige:true},
+  {id:4, nom:'Concours Police', niveau:'BEPC', matiere:'Anglais', session:'2024', auteur:'Chimène H.', date:'05 août 2026', statut:'rejete', corrige:false},
+  {id:5, nom:'Concours EPAC', niveau:'Licence', matiere:'Physique', session:'2025', auteur:'Ulrich B.', date:'03 août 2026', statut:'en_attente', corrige:true},
+];
+let contribIdCounter = 6;
+
+let ANNONCES = [
+  {id:1, nom:'Concours Police', org:'Police Nationale', kind:'Fonction publique', statut:'open', foot:'Épreuve écrite · Sept. 2026', cd:'42 jours'},
+  {id:2, nom:'Concours ENAM', org:"École Nationale d'Administration et de Magistrature", kind:'École publique', statut:'soon', foot:'Inscriptions · Nov. 2026', cd:'58 jours'},
+  {id:3, nom:'Concours IFSIO', org:'Ministère de la Santé', kind:'École publique', statut:'soon', foot:'Candidatures · Oct. 2026', cd:'70 jours'},
+  {id:4, nom:'Concours Ministères', org:'Fonction publique · postes ouverts', kind:'Fonction publique', statut:'open', foot:'Épreuve écrite · Août 2026', cd:'12 jours'},
+  {id:5, nom:'Concours EPAC', org:"Université d'Abomey-Calavi", kind:'École publique', statut:'closed', foot:'Session 2025 terminée', cd:'Résultats publiés'},
+  {id:6, nom:'Concours Douanes', org:"Ministère de l'Économie", kind:'Fonction publique', statut:'closed', foot:'Session 2025 terminée', cd:'Résultats publiés'},
+];
+let annonceIdCounter = 7;
+
+let PLANS = {
+  examens: [{dur:'1 mois', price:1000},{dur:'3 mois', price:2500},{dur:'6 mois', price:4500},{dur:'9 mois', price:6000}],
+  concours: [{dur:'1 mois', price:2000},{dur:'3 mois', price:5000},{dur:'6 mois', price:9000},{dur:'9 mois', price:12000}],
+  examens_academiques: [{dur:'1 mois', price:800},{dur:'3 mois', price:2000},{dur:'6 mois', price:3500},{dur:'9 mois', price:4800}],
+};
+
+let SUBSCRIBERS = [
+  {id:1, nom:'Ismaël K.', formule:'3 mois', groupe:'Fonction publique', debut:'12 juil. 2026', fin:'12 oct. 2026', montant:'2 500 FCFA', statut:'actif'},
+  {id:2, nom:'Falilath D.', formule:'1 mois', groupe:'École publique', debut:'02 août 2026', fin:'02 sept. 2026', montant:'2 000 FCFA', statut:'actif'},
+  {id:3, nom:'Ulrich B.', formule:'6 mois', groupe:'Fonction publique', debut:'20 mai 2026', fin:'20 nov. 2026', montant:'4 500 FCFA', statut:'actif'},
+  {id:4, nom:'Chimène H.', formule:'3 mois', groupe:'École publique', debut:'02 avr. 2026', fin:'02 juil. 2026', montant:'5 000 FCFA', statut:'expiré'},
+  {id:5, nom:'Rachidi A.', formule:'9 mois', groupe:'Fonction publique', debut:'15 janv. 2026', fin:'15 oct. 2026', montant:'6 000 FCFA', statut:'actif'},
+  {id:6, nom:'Aïcha M.', formule:'3 mois', groupe:'Examens académiques', debut:'01 août 2026', fin:'01 nov. 2026', montant:'2 000 FCFA', statut:'actif'},
+];
+let subIdCounter = 7;
+
+const USERS = [
+  {nom:'Ismaël K.', contact:'+229 97 00 00 01', ville:'Cotonou', inscrit:'12 juil. 2026', achats:6, statut:'actif'},
+  {nom:'Falilath D.', contact:'+229 97 00 00 02', ville:'Abomey-Calavi', inscrit:'02 août 2026', achats:2, statut:'actif'},
+  {nom:'Ulrich B.', contact:'+229 97 00 00 03', ville:'Porto-Novo', inscrit:'20 mai 2026', achats:9, statut:'actif'},
+  {nom:'Chimène H.', contact:'+229 97 00 00 04', ville:'Parakou', inscrit:'02 avr. 2026', achats:3, statut:'suspendu'},
+  {nom:'Rachidi A.', contact:'+229 97 00 00 05', ville:'Cotonou', inscrit:'15 janv. 2026', achats:12, statut:'actif'},
+  {nom:'Judicaël A.', contact:'+229 97 00 00 06', ville:'Abomey-Calavi', inscrit:'03 mars 2026', achats:15, statut:'actif'},
+  {nom:'Aïcha M.', contact:'+229 97 00 00 07', ville:'Bohicon', inscrit:'22 juin 2026', achats:1, statut:'actif'},
+  {nom:'Godfroy T.', contact:'+229 97 00 00 08', ville:'Cotonou', inscrit:'18 févr. 2026', achats:0, statut:'suspendu'},
+];
+
+let PAYMENTS = [
+  {id:1, date:'11 août 2026', user:'Ismaël K.', desc:'Sujet + corrigé — Culture générale (Police)', methode:'MTN MoMo', montant:'300 FCFA', statut:'Réussi', ref:'MTN-7K3X9L2Q'},
+  {id:2, date:'10 août 2026', user:'Falilath D.', desc:'Abonnement 1 mois — École publique', methode:'Moov Money', montant:'2 000 FCFA', statut:'Réussi', ref:'MOOV-4H1P8T6R'},
+  {id:3, date:'10 août 2026', user:'Ulrich B.', desc:'Sujet — Mathématiques (EPAC)', methode:'MTN MoMo', montant:'250 FCFA', statut:'Réussi', ref:'MTN-9D2M5W1Y'},
+  {id:4, date:'09 août 2026', user:'Chimène H.', desc:'Abonnement 3 mois — École publique', methode:'Celtiis Money', montant:'5 000 FCFA', statut:'Échoué', ref:'CELT-2A7Q4Z8N'},
+  {id:5, date:'08 août 2026', user:'Rachidi A.', desc:'Sujet + corrigé — Droit public (Ministères)', methode:'MTN MoMo', montant:'400 FCFA', statut:'Réussi', ref:'MTN-6R9J3K5V'},
+  {id:6, date:'07 août 2026', user:'Aïcha M.', desc:'Sujet — Informatique (Ministères)', methode:'Moov Money', montant:'250 FCFA', statut:'Réussi', ref:'MOOV-1L8F6C3B'},
+  {id:7, date:'06 août 2026', user:'Godfroy T.', desc:'Abonnement 1 mois — Fonction publique', methode:'MTN MoMo', montant:'1 000 FCFA', statut:'Échoué', ref:'MTN-3W5H9P7X'},
+  {id:8, date:'05 août 2026', user:'Judicaël A.', desc:'Sujet — Culture générale (ENAM)', methode:'MTN MoMo', montant:'250 FCFA', statut:'Réussi', ref:'MTN-8Q2N6D4M'},
+];
+let paymentIdCounter = 9;
+
+const ACTIVITY = [
+  {c:'gold', t:'Nouvelle contribution reçue', s:'Concours EPAC · Ulrich B. · il y a 2h'},
+  {c:'green', t:'Paiement réussi', s:'Falilath D. — Abonnement 1 mois · il y a 3h'},
+  {c:'blue', t:'Sujet publié', s:'Informatique — Concours Ministères · il y a 5h'},
+  {c:'green', t:'Nouvel utilisateur inscrit', s:'Aïcha M. · il y a 6h'},
+  {c:'gold', t:'Contribution approuvée', s:'Concours Trésor · Ismaël K. · hier'},
+];
+
+let MESSAGES = [
+  {id:1, nom:'Ismaël K.', contact:'+229 97 00 00 01', sujet:"Paiement débité mais sujet non reçu", categorie:'Réclamation', corps:"Bonjour, j'ai payé 300 FCFA pour le sujet Culture générale du concours Police via MTN MoMo, mon compte a bien été débité mais je n'ai reçu aucun fichier. Merci de vérifier.", date:'11 août 2026', statut:'nouveau'},
+  {id:2, nom:'Falilath D.', contact:'+229 97 00 00 02', sujet:"Comment s'abonner pour les écoles publiques ?", categorie:'Question', corps:"Bonjour, je voudrais savoir comment activer l'abonnement écoles publiques et s'il couvre bien ENAM et ENEAM en même temps. Merci d'avance.", date:'10 août 2026', statut:'nouveau'},
+  {id:3, nom:'Ulrich B.', contact:'+229 97 00 00 03', sujet:"Impossible de télécharger le PDF", categorie:'Problème technique', corps:"Le téléchargement du sujet Mathématiques EPAC 2025 échoue systématiquement depuis hier, que ce soit en wifi ou en données mobiles. Pouvez-vous vérifier le fichier ?", date:'10 août 2026', statut:'en_cours'},
+  {id:4, nom:'Chimène H.', contact:'+229 97 00 00 04', sujet:"Corrigé incomplet pour le concours Trésor", categorie:'Réclamation', corps:"Le corrigé acheté pour Comptabilité publique (Concours Trésor) s'arrête à la page 3 sur 6, il manque la suite des réponses. Merci de le compléter ou de me rembourser.", date:'09 août 2026', statut:'en_cours'},
+  {id:5, nom:'Rachidi A.', contact:'+229 97 00 00 05', sujet:"Suggestion : ajouter le corps Impôts et Domaines", categorie:'Suggestion', corps:"Beaucoup de candidats autour de moi préparent aussi le concours de la Direction Générale des Impôts et des Domaines, ce serait bien d'avoir plus de sujets récents pour ce corps.", date:'07 août 2026', statut:'resolu'},
+  {id:6, nom:'Aïcha M.', contact:'+229 97 00 00 07', sujet:"Numéro Moov Money non reconnu", categorie:'Problème technique', corps:"Lors du paiement par Moov Money, le site m'indique que mon numéro n'est pas reconnu alors qu'il est actif. Pouvez-vous vérifier l'intégration Moov ?", date:'06 août 2026', statut:'nouveau'},
+];
+let messageIdCounter = 7;
+let messageFilter = 'tous';
+let currentMessageDetail = null;
+
+let contribFilter = 'tous';
+let planTab = 'examens';
+let currentContribDetail = null;
+let currentUserDetail = null;
+
+/* ============ NAVIGATION ============ */
+const PAGE_TITLES = {
+  overview:['Vue d\'ensemble', 'Aperçu général de la plateforme'],
+  catalogue:['Catalogue', 'Gérer les sujets de concours'],
+  categories:['Corps, écoles & examens', 'Gérer les types de concours et d\'examens'],
+  contributions:['Contributions', 'Modérer les envois de la communauté'],
+  annonces:['Annonces', 'Concours et échéances à suivre'],
+  tarifs:['Tarifs des abonnements', 'Gérer les formules d\'abonnement'],
+  abonnements:['Abonnés', 'Utilisateurs abonnés à une formule'],
+  utilisateurs:['Utilisateurs', 'Comptes inscrits sur la plateforme'],
+  paiements:['Paiements', 'Transactions Mobile Money'],
+  messages:['Messages', 'Plaintes et correspondance des utilisateurs'],
+  logs:["Journal d'activité", 'Historique des actions de l\'équipe'],
+  parametres:['Paramètres', 'Configuration générale du site'],
+};
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.toggle('active', l.dataset.page === id));
+  document.getElementById('tb-title').firstChild.textContent = PAGE_TITLES[id][0];
+  document.getElementById('tb-sub').textContent = PAGE_TITLES[id][1];
+  closeSidebarMobile();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+function toggleSidebar(){ document.body.classList.toggle('sb-open'); }
+function closeSidebarMobile(){ document.body.classList.remove('sb-open'); }
+
+/* ============ OVERVIEW ============ */
+const OVERVIEW_PERIOD_DATA = {
+  '7':  {revenue:96000, revenueTrend:'+6% vs semaine précédente', subs:312, subsTrend:'+3 cette semaine', sujets:17, sujetsTrend:'+0 cette semaine'},
+  '30': {revenue:486500, revenueTrend:'+18% vs juillet', subs:312, subsTrend:'+9% ce mois-ci', sujets:17, sujetsTrend:'+2 ce mois-ci'},
+  '90': {revenue:1340000, revenueTrend:'+24% vs trimestre précédent', subs:312, subsTrend:'+41 ce trimestre', sujets:17, sujetsTrend:'+6 ce trimestre'},
+};
+function renderBarChart(elId, data, format){
+  const max = Math.max(...data.map(d => d.v));
+  document.getElementById(elId).innerHTML = data.map((d,i) => `
+    <div class="col">
+      <div class="bar ${i===data.length-1?'now':''}" style="height:${Math.round(d.v/max*100)}%">
+        <span class="val">${format ? format(d.v) : d.v}</span>
+      </div>
+      <span class="lbl">${d.l}</span>
+    </div>
+  `).join('');
+}
+function renderOverview(){
+  const period = document.getElementById('overview-period').value;
+  const d = OVERVIEW_PERIOD_DATA[period];
+  const arrow = '<svg viewBox="0 0 24 24"><path d="M5 15l5-5 4 4 5-7"/></svg> ';
+  document.getElementById('kpi-revenue').innerHTML = d.revenue.toLocaleString('fr-FR') + ' <span style="font-size:13px;color:var(--text-faint)">FCFA</span>';
+  document.getElementById('kpi-revenue-trend').innerHTML = arrow + d.revenueTrend;
+  document.getElementById('kpi-subs').textContent = d.subs;
+  document.getElementById('kpi-subs-trend').innerHTML = arrow + d.subsTrend;
+  document.getElementById('kpi-sujets').textContent = d.sujets;
+  document.getElementById('kpi-sujets-trend').innerHTML = arrow + d.sujetsTrend;
+
+  const months = [
+    {l:'Mars', v:210000}, {l:'Avril', v:265000}, {l:'Mai', v:298000},
+    {l:'Juin', v:340000}, {l:'Juillet', v:410000}, {l:'Août', v:486500},
+  ];
+  renderBarChart('revenue-chart', months, v => (v/1000).toFixed(0) + 'k');
+
+  const newUsers = [
+    {l:'Mars', v:18}, {l:'Avril', v:24}, {l:'Mai', v:31},
+    {l:'Juin', v:28}, {l:'Juillet', v:35}, {l:'Août', v:42},
+  ];
+  renderBarChart('users-chart', newUsers);
+
+  const dist = [
+    {n:'Police', p:22}, {n:'ENAM', p:18}, {n:'Douanes', p:14},
+    {n:'Ministères', p:12}, {n:'EPAC', p:10}, {n:'Impôts', p:9}, {n:'Autres', p:15},
+  ];
+  document.getElementById('dist-list').innerHTML = dist.map(d => `
+    <div class="dist-row">
+      <span class="name">${d.n}</span>
+      <div class="track"><div class="fill" style="width:${d.p}%"></div></div>
+      <span class="pct">${d.p}%</span>
+    </div>
+  `).join('');
+
+  document.getElementById('activity-list').innerHTML = ACTIVITY.map(a => `
+    <div class="activity-item">
+      <span class="dot ${a.c}"></span>
+      <div><div class="t">${a.t}</div><div class="s">${a.s}</div></div>
+    </div>
+  `).join('');
+
+  const pending = CONTRIBUTIONS.filter(c => c.statut === 'en_attente').slice(0,3);
+  document.getElementById('pending-preview').innerHTML = pending.length ? pending.map(c => `
+    <div class="activity-item">
+      <span class="dot gold"></span>
+      <div style="flex:1"><div class="t">${c.nom} — ${c.matiere}</div><div class="s">${c.niveau} · par ${c.auteur} · ${c.date}</div></div>
+    </div>
+  `).join('') : '<div class="activity-item"><div class="s">Aucune contribution en attente.</div></div>';
+
+  const pendingCount = CONTRIBUTIONS.filter(c => c.statut === 'en_attente').length;
+  document.getElementById('kpi-pending').textContent = pendingCount;
+  document.getElementById('sb-contrib-badge').textContent = pendingCount;
+  document.getElementById('sb-contrib-badge').style.display = pendingCount > 0 ? 'inline-flex' : 'none';
+}
+
+/* ============ CATALOGUE ============ */
+function groupeSlug(groupe){
+  if(groupe === 'Fonction publique') return 'fp';
+  if(groupe === 'École publique') return 'ecole';
+  return 'examen';
+}
+function renderCatalogueTable(){
+  renderCatalogueStats();
+  const search = (document.getElementById('cat-search').value || '').toLowerCase();
+  const fg = document.getElementById('cat-filter-groupe').value;
+  const fs = document.getElementById('cat-filter-statut').value;
+  const rows = SUJETS.filter(s => {
+    const text = (s.titre + ' ' + s.meta + ' ' + s.corps).toLowerCase();
+    return (fg === 'tous' || s.groupe === fg) && (fs === 'tous' || s.statut === fs) && (search === '' || text.includes(search));
+  });
+  document.getElementById('cat-count').textContent = rows.length + (rows.length > 1 ? ' sujets' : ' sujet');
+  const tbody = document.getElementById('catalogue-tbody');
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Aucun sujet ne correspond à ces filtres.</td></tr>'; renderPager('catalogue-pager','catalogue',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('catalogue', rows);
+  tbody.innerHTML = pageRows.map(s => `
+    <tr>
+      <td>
+        <div style="display:flex; align-items:center; gap:11px;">
+          <div class="sujet-thumb ${groupeSlug(s.groupe)}">${s.corps.charAt(0)}</div>
+          <div><div class="cell-main">${s.titre}</div><div class="cell-sub">${s.meta}</div></div>
+        </div>
+      </td>
+      <td><span class="tag tag-${groupeSlug(s.groupe)}">${s.corps}</span></td>
+      <td>${s.niveau}</td>
+      <td style="font-family:var(--font-mono)">${s.prix} FCFA${s.prixCorrige ? '<div class="cell-sub">+ corrigé : '+s.prixCorrige+' FCFA</div>' : ''}</td>
+      <td style="font-family:var(--font-mono)">${s.ventes}</td>
+      <td><span class="status-pill ${s.statut==='Publié'?'on':'off'}">${s.statut}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="openSujetModal(${s.id})" title="Modifier"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+          <button class="act-btn danger" onclick="deleteSujet(${s.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  renderPager('catalogue-pager', 'catalogue', totalPages, page);
+}
+function renderCatalogueStats(){
+  const publies = SUJETS.filter(s => s.statut === 'Publié').length;
+  const brouillons = SUJETS.filter(s => s.statut === 'Brouillon').length;
+  const ventes = SUJETS.reduce((sum, s) => sum + s.ventes, 0);
+  document.getElementById('catalogue-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Sujets publiés</span></div><div class="val">${publies}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Brouillons</span></div><div class="val">${brouillons}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Ventes cumulées</span></div><div class="val">${ventes.toLocaleString('fr-FR')}</div></div>
+  `;
+}
+function fillCorpsSelect(groupe){
+  const sel = document.getElementById('sujet-corps');
+  let list;
+  if(groupe === 'Fonction publique') list = CORPS.map(c => c.nom);
+  else if(groupe === 'École publique') list = ECOLES.map(e => e.nom);
+  else list = EXAMENS.map(e => e.nom);
+  sel.innerHTML = list.map(c => `<option value="${c}">${c}</option>`).join('');
+}
+function onSujetGroupeChange(){
+  const groupe = document.getElementById('sujet-groupe').value;
+  fillCorpsSelect(groupe);
+  document.getElementById('sujet-corps-label').textContent = groupe === 'Fonction publique' ? 'Corps' : (groupe === 'École publique' ? 'École' : 'Examen');
+  document.getElementById('sujet-niveau-wrap-label').parentElement.style.display = groupe === 'Fonction publique' ? 'block' : 'none';
+}
+function resetFileRow(rowId, labelId, labelText){
+  const row = document.getElementById(rowId);
+  row.classList.remove('filled');
+  document.getElementById(labelId).textContent = labelText;
+  const input = row.querySelector('input[type=file]');
+  if(input) input.value = '';
+}
+function fileChosenSujet(input, rowId, labelId, nom){
+  if(input.files && input.files[0]){
+    document.getElementById(rowId).classList.add('filled');
+    document.getElementById(labelId).textContent = '✓ ' + nom + ' importé — ' + input.files[0].name;
+  }
+}
+function openSujetModal(id){
+  const editing = !!id;
+  document.getElementById('sujet-modal-title').textContent = editing ? 'Modifier le sujet' : 'Ajouter un sujet';
+  document.getElementById('sujet-id').value = id || '';
+  const s = editing ? SUJETS.find(x => x.id === id) : null;
+  document.getElementById('sujet-groupe').value = s ? s.groupe : 'Fonction publique';
+  onSujetGroupeChange();
+  document.getElementById('sujet-corps').value = s ? s.corps : CORPS[0].nom;
+  document.getElementById('sujet-niveau').value = s ? s.niveau : 'BAC';
+  document.getElementById('sujet-titre').value = s ? s.titre : '';
+  document.getElementById('sujet-meta').value = s ? s.meta : '';
+  document.getElementById('sujet-prix').value = s ? s.prix : 200;
+  document.getElementById('sujet-prix-corrige').value = (s && s.prixCorrige) ? s.prixCorrige : '';
+  document.getElementById('sujet-statut').value = s ? s.statut : 'Publié';
+  resetFileRow('sujet-row-fichier', 'sujet-row-fichier-label', editing ? 'Sujet déjà importé — remplacer le PDF (optionnel)' : 'Importer le sujet (PDF)');
+  resetFileRow('sujet-row-corrige', 'sujet-row-corrige-label', (editing && s.prixCorrige) ? 'Corrigé déjà importé — remplacer le PDF (optionnel)' : 'Importer le corrigé (PDF)');
+  if(editing) document.getElementById('sujet-row-fichier').classList.add('filled');
+  if(editing && s.prixCorrige) document.getElementById('sujet-row-corrige').classList.add('filled');
+  openModal('modal-sujet');
+}
+function saveSujet(){
+  const id = document.getElementById('sujet-id').value;
+  const groupe = document.getElementById('sujet-groupe').value;
+  const titre = document.getElementById('sujet-titre').value.trim();
+  const meta = document.getElementById('sujet-meta').value.trim();
+  const prix = parseInt(document.getElementById('sujet-prix').value, 10) || 0;
+  const prixCorrigeRaw = document.getElementById('sujet-prix-corrige').value;
+  const prixCorrige = prixCorrigeRaw ? parseInt(prixCorrigeRaw, 10) : null;
+  if(!titre || !meta){ showToast('Renseigne au moins le titre et la session'); return; }
+  if(!prix){ showToast('Renseigne le prix du sujet seul'); return; }
+  if(prixCorrige && prixCorrige <= prix){ showToast('Le prix avec corrigé doit être supérieur au prix du sujet seul'); return; }
+  const hasFichier = document.getElementById('sujet-row-fichier').classList.contains('filled');
+  if(!id && !hasFichier){ showToast('Importe au moins le fichier du sujet'); return; }
+  const payload = {
+    groupe, corps: document.getElementById('sujet-corps').value,
+    niveau: groupe === 'Fonction publique' ? document.getElementById('sujet-niveau').value : '—',
+    titre, meta, prix, prixCorrige, statut: document.getElementById('sujet-statut').value,
+  };
+  if(id){
+    const s = SUJETS.find(x => x.id === parseInt(id,10));
+    Object.assign(s, payload);
+    logAction('a modifié un sujet', titre + ' — ' + payload.corps);
+    showToast('Sujet mis à jour');
+  } else {
+    SUJETS.push({id: sujetIdCounter++, ventes:0, ...payload});
+    logAction('a ajouté un sujet', titre + ' — ' + payload.corps);
+    showToast('Sujet ajouté au catalogue');
+  }
+  closeModal('modal-sujet');
+  renderCatalogueTable();
+  renderOverview();
+}
+function deleteSujet(id){
+  const s = SUJETS.find(x => x.id === id);
+  SUJETS = SUJETS.filter(x => x.id !== id);
+  renderCatalogueTable();
+  if(s) logAction('a supprimé un sujet', s.titre + ' — ' + s.corps);
+  showToast('Sujet supprimé');
+}
+
+/* ============ CORPS & ÉCOLES ============ */
+const CAT_TYPE_META = {
+  corps:    {label:'Corps',   groupeLabel:'Fonction publique',   listRef: () => CORPS,   article:'un corps',   nomSing:'du corps',      addLabel:'Ajouter un corps',      titreNouveau:'un corps',   titreModif:'le corps',   sub:'Crée un nouveau corps de la fonction publique.'},
+  ecoles:   {label:'École',   groupeLabel:'École publique',      listRef: () => ECOLES,  article:'une école',  nomSing:"de l'école",    addLabel:'Ajouter une école',     titreNouveau:'une école',  titreModif:"l'école",    sub:'Crée une nouvelle école publique post-bac.'},
+  examens:  {label:'Examen',  groupeLabel:'Examens académiques', listRef: () => EXAMENS, article:'un examen',  nomSing:"de l'examen",   addLabel:'Ajouter un examen',     titreNouveau:'un examen',  titreModif:"l'examen",   sub:"Crée un nouvel examen académique (ex. CEP, BEPC, BAC, CAP)."},
+};
+function setCatTypeTab(v){
+  catTypeTab = v;
+  document.querySelectorAll('#cat-type-tabs button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.getElementById('categorie-th-nom').textContent = CAT_TYPE_META[v].label;
+  document.getElementById('categorie-add-label').textContent = CAT_TYPE_META[v].addLabel;
+  renderCategoriesTable();
+}
+function currentCatList(){ return CAT_TYPE_META[catTypeTab].listRef(); }
+function renderCategoriesTable(){
+  const search = (document.getElementById('categorie-search').value || '').toLowerCase();
+  const list = currentCatList().filter(c => (c.nom + ' ' + c.desc).toLowerCase().includes(search));
+  const groupeLabel = CAT_TYPE_META[catTypeTab].groupeLabel;
+  const tbody = document.getElementById('categories-tbody');
+  if(list.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Aucun élément trouvé.</td></tr>'; return; }
+  tbody.innerHTML = list.map(c => {
+    const count = SUJETS.filter(s => s.groupe === groupeLabel && s.corps === c.nom).length;
+    return `
+    <tr>
+      <td class="cell-main">${c.nom}</td>
+      <td>${c.desc || '—'}</td>
+      <td style="font-family:var(--font-mono)">${count}</td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" data-role="admin" onclick="openCategorieModal(${c.id})" title="Modifier"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+          <button class="act-btn danger" data-role="admin" onclick="deleteCategorie(${c.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+function openCategorieModal(id){
+  const editing = !!id;
+  const meta = CAT_TYPE_META[catTypeTab];
+  document.getElementById('categorie-modal-title').textContent = editing ? ('Modifier ' + meta.titreModif) : ('Ajouter ' + meta.titreNouveau);
+  document.getElementById('categorie-modal-sub').textContent = meta.sub;
+  document.getElementById('categorie-nom-label').textContent = 'Nom ' + meta.nomSing;
+  document.getElementById('categorie-id').value = id || '';
+  const c = editing ? currentCatList().find(x => x.id === id) : null;
+  document.getElementById('categorie-nom').value = c ? c.nom : '';
+  document.getElementById('categorie-desc').value = c ? c.desc : '';
+  openModal('modal-categorie');
+}
+function saveCategorie(){
+  const id = document.getElementById('categorie-id').value;
+  const nom = document.getElementById('categorie-nom').value.trim();
+  const desc = document.getElementById('categorie-desc').value.trim();
+  if(!nom){ showToast('Renseigne au moins le nom'); return; }
+  const meta = CAT_TYPE_META[catTypeTab];
+  const list = currentCatList();
+  if(id){
+    Object.assign(list.find(x => x.id === parseInt(id,10)), {nom, desc});
+    logAction('a modifié ' + meta.article, nom);
+    showToast('Modifications enregistrées');
+  } else {
+    if(catTypeTab === 'corps'){ CORPS.push({id: corpsIdCounter++, nom, desc}); }
+    else if(catTypeTab === 'ecoles'){ ECOLES.push({id: ecoleIdCounter++, nom, desc}); }
+    else { EXAMENS.push({id: examenIdCounter++, nom, desc}); }
+    logAction('a ajouté ' + meta.article, nom);
+    showToast(meta.label + ' ajouté(e)');
+  }
+  closeModal('modal-categorie');
+  renderCategoriesTable();
+}
+function deleteCategorie(id){
+  const meta = CAT_TYPE_META[catTypeTab];
+  const item = currentCatList().find(x => x.id === id);
+  const linked = SUJETS.filter(s => s.groupe === meta.groupeLabel && s.corps === item.nom).length;
+  if(linked > 0){ showToast(linked + ' sujet(s) sont encore liés — retire-les d\'abord'); return; }
+  if(catTypeTab === 'corps'){ CORPS = CORPS.filter(c => c.id !== id); }
+  else if(catTypeTab === 'ecoles'){ ECOLES = ECOLES.filter(e => e.id !== id); }
+  else { EXAMENS = EXAMENS.filter(e => e.id !== id); }
+  renderCategoriesTable();
+  logAction('a supprimé ' + meta.article, item.nom);
+  showToast('Élément supprimé');
+}
+
+/* ============ CONTRIBUTIONS ============ */
+function setContribTab(v){
+  contribFilter = v;
+  document.querySelectorAll('#contrib-tabs button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  renderContribTable();
+}
+function renderContribTable(){
+  renderContribStats();
+  const rows = CONTRIBUTIONS.filter(c => contribFilter === 'tous' || c.statut === contribFilter);
+  const tbody = document.getElementById('contrib-tbody');
+  const statusLabel = {en_attente:['pending','En attente'], approuve:['on','Approuvée'], rejete:['reject','Rejetée']};
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Aucune contribution ici.</td></tr>'; renderPager('contributions-pager','contributions',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('contributions', rows);
+  tbody.innerHTML = pageRows.map(c => {
+    const [cls, label] = statusLabel[c.statut];
+    return `
+    <tr>
+      <td class="cell-main">${c.nom}</td>
+      <td>${c.niveau}</td>
+      <td>${c.matiere}</td>
+      <td>${c.auteur}<div class="cell-sub">${c.session}</div></td>
+      <td>${c.date}</td>
+      <td>${c.corrige ? 'Sujet + corrigé' : 'Sujet seul'}</td>
+      <td><span class="status-pill ${cls}">${label}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="viewContrib(${c.id})" title="Voir"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="act-btn danger" onclick="deleteContribRow(${c.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  renderPager('contributions-pager', 'contributions', totalPages, page);
+}
+function renderContribStats(){
+  const enAttente = CONTRIBUTIONS.filter(c => c.statut === 'en_attente').length;
+  const approuvees = CONTRIBUTIONS.filter(c => c.statut === 'approuve').length;
+  const rejetees = CONTRIBUTIONS.filter(c => c.statut === 'rejete').length;
+  document.getElementById('contrib-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">En attente</span></div><div class="val" style="color:var(--gold)">${enAttente}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Approuvées</span></div><div class="val">${approuvees}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Rejetées</span></div><div class="val">${rejetees}</div></div>
+  `;
+}
+function suggestPrix(niveau){
+  if(niveau === 'Master') return 300;
+  if(niveau === 'Licence') return 250;
+  return 200;
+}
+function viewContrib(id){
+  currentContribDetail = id;
+  const c = CONTRIBUTIONS.find(x => x.id === id);
+  const statusLabel = {en_attente:['pending','En attente'], approuve:['on','Approuvée'], rejete:['reject','Rejetée']};
+  const [cls, label] = statusLabel[c.statut];
+  document.getElementById('cd-statut-badge').innerHTML = `<span class="status-pill ${cls}">${label}</span>`;
+  document.getElementById('cd-nom').textContent = c.nom;
+  document.getElementById('cd-org').textContent = 'Contribution communautaire';
+  document.getElementById('cd-niveau').textContent = c.niveau;
+  document.getElementById('cd-matiere').textContent = c.matiere;
+  document.getElementById('cd-session').textContent = c.session;
+  document.getElementById('cd-date').textContent = c.date;
+  document.getElementById('cd-auteur').textContent = c.auteur;
+  document.getElementById('cd-corrige').style.display = c.corrige ? 'flex' : 'none';
+  const base = suggestPrix(c.niveau);
+  document.getElementById('cd-prix-sujet').value = base;
+  document.getElementById('cd-prix-corrige-wrap').style.display = c.corrige ? 'block' : 'none';
+  document.getElementById('cd-prix-corrige').value = c.corrige ? base + 100 : '';
+  document.getElementById('cd-prix-note').textContent = c.corrige
+    ? "Cette contribution inclut un corrigé : les deux prix seront proposés au candidat au moment de l'achat."
+    : "Cette contribution ne contient que le sujet — un seul prix s'applique.";
+  document.getElementById('preview-sujet').classList.remove('show');
+  document.getElementById('preview-corrige').classList.remove('show');
+  openModal('modal-contrib-detail');
+}
+function togglePreview(which){
+  document.getElementById('preview-' + which).classList.toggle('show');
+}
+function deleteContrib(){
+  const c = CONTRIBUTIONS.find(x => x.id === currentContribDetail);
+  CONTRIBUTIONS = CONTRIBUTIONS.filter(x => x.id !== currentContribDetail);
+  closeModal('modal-contrib-detail');
+  renderContribTable();
+  renderOverview();
+  updateNotifPing();
+  logAction('a supprimé une contribution', c.nom + ' · ' + c.auteur);
+  showToast('Contribution supprimée');
+}
+function deleteContribRow(id){
+  const c = CONTRIBUTIONS.find(x => x.id === id);
+  CONTRIBUTIONS = CONTRIBUTIONS.filter(x => x.id !== id);
+  renderContribTable();
+  renderOverview();
+  updateNotifPing();
+  if(c) logAction('a supprimé une contribution', c.nom + ' · ' + c.auteur);
+  showToast('Contribution supprimée');
+}
+function approveContrib(){
+  const c = CONTRIBUTIONS.find(x => x.id === currentContribDetail);
+  const prixSujet = parseInt(document.getElementById('cd-prix-sujet').value, 10);
+  if(!prixSujet || prixSujet <= 0){ showToast('Renseigne un prix valide pour le sujet'); return; }
+  let prixCorrige = null;
+  if(c.corrige){
+    prixCorrige = parseInt(document.getElementById('cd-prix-corrige').value, 10);
+    if(!prixCorrige || prixCorrige <= 0){ showToast('Renseigne un prix valide pour le sujet + corrigé'); return; }
+    if(prixCorrige <= prixSujet){ showToast('Le prix avec corrigé doit être supérieur au prix du sujet seul'); return; }
+  }
+  c.statut = 'approuve';
+  SUJETS.push({
+    id: sujetIdCounter++, groupe:'Fonction publique', corps: c.nom.replace('Concours ',''),
+    niveau: c.niveau, titre: c.matiere, meta: 'Concours ' + c.nom.replace('Concours ','') + ' · ' + c.session,
+    prix: prixSujet, prixCorrige, statut:'Publié', ventes:0,
+  });
+  closeModal('modal-contrib-detail');
+  renderContribTable();
+  renderOverview();
+  renderCatalogueTable();
+  updateNotifPing();
+  const recap = prixCorrige ? (prixSujet + ' FCFA · ' + prixCorrige + ' FCFA avec corrigé') : (prixSujet + ' FCFA');
+  logAction('a approuvé une contribution', c.nom + ' · ' + c.auteur + ' — ' + recap);
+  showToast('Contribution approuvée et publiée au catalogue (' + recap + ')');
+}
+function rejectContrib(){
+  const c = CONTRIBUTIONS.find(x => x.id === currentContribDetail);
+  c.statut = 'rejete';
+  closeModal('modal-contrib-detail');
+  renderContribTable();
+  renderOverview();
+  updateNotifPing();
+  logAction('a rejeté une contribution', c.nom + ' · ' + c.auteur);
+  showToast('Contribution rejetée');
+}
+
+/* ============ ANNONCES ============ */
+function renderAnnoncesTable(){
+  renderAnnoncesStats();
+  const search = (document.getElementById('ann-search').value || '').toLowerCase();
+  const fk = document.getElementById('ann-filter-kind').value;
+  const fs = document.getElementById('ann-filter-statut').value;
+  const rows = ANNONCES.filter(a => {
+    const text = (a.nom + ' ' + a.org).toLowerCase();
+    return (fk === 'tous' || a.kind === fk) && (fs === 'tous' || a.statut === fs) && (search === '' || text.includes(search));
+  });
+  const tbody = document.getElementById('annonces-tbody');
+  const statusLabel = {open:['on','Ouvert'], soon:['pending','Bientôt'], closed:['off','Clos']};
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Aucune annonce.</td></tr>'; renderPager('annonces-pager','annonces',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('annonces', rows);
+  tbody.innerHTML = pageRows.map(a => {
+    const [cls, label] = statusLabel[a.statut];
+    return `
+    <tr>
+      <td class="cell-main">${a.nom}</td>
+      <td>${a.org}</td>
+      <td><span class="tag ${a.kind==='Fonction publique'?'tag-fp':'tag-ecole'}">${a.kind}</span></td>
+      <td>${a.foot}<div class="cell-sub">${a.cd}</div></td>
+      <td><span class="status-pill ${cls}">${label}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="openAnnonceModal(${a.id})" title="Modifier"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+          <button class="act-btn danger" onclick="deleteAnnonce(${a.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  renderPager('annonces-pager', 'annonces', totalPages, page);
+}
+function renderAnnoncesStats(){
+  const open = ANNONCES.filter(a => a.statut === 'open').length;
+  const soon = ANNONCES.filter(a => a.statut === 'soon').length;
+  const closed = ANNONCES.filter(a => a.statut === 'closed').length;
+  document.getElementById('annonces-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Ouvertes</span></div><div class="val" style="color:var(--green)">${open}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Bientôt</span></div><div class="val" style="color:var(--gold)">${soon}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Closes</span></div><div class="val">${closed}</div></div>
+  `;
+}
+function openAnnonceModal(id){
+  const editing = !!id;
+  document.getElementById('annonce-modal-title').textContent = editing ? "Modifier l'annonce" : 'Nouvelle annonce';
+  document.getElementById('annonce-id').value = id || '';
+  const a = editing ? ANNONCES.find(x => x.id === id) : null;
+  document.getElementById('annonce-nom').value = a ? a.nom : '';
+  document.getElementById('annonce-org').value = a ? a.org : '';
+  document.getElementById('annonce-kind').value = a ? a.kind : 'Fonction publique';
+  document.getElementById('annonce-statut').value = a ? a.statut : 'open';
+  document.getElementById('annonce-foot').value = a ? a.foot : '';
+  document.getElementById('annonce-cd').value = a ? a.cd : '';
+  openModal('modal-annonce');
+}
+function saveAnnonce(){
+  const id = document.getElementById('annonce-id').value;
+  const nom = document.getElementById('annonce-nom').value.trim();
+  const org = document.getElementById('annonce-org').value.trim();
+  if(!nom || !org){ showToast("Renseigne au moins le nom et l'organisme"); return; }
+  const payload = {
+    nom, org, kind: document.getElementById('annonce-kind').value, statut: document.getElementById('annonce-statut').value,
+    foot: document.getElementById('annonce-foot').value.trim(), cd: document.getElementById('annonce-cd').value.trim(),
+  };
+  if(id){ Object.assign(ANNONCES.find(x => x.id === parseInt(id,10)), payload); logAction('a modifié une annonce', nom); showToast('Annonce mise à jour'); }
+  else { ANNONCES.push({id: annonceIdCounter++, ...payload}); logAction('a créé une annonce', nom); showToast('Annonce créée'); }
+  closeModal('modal-annonce');
+  renderAnnoncesTable();
+}
+function deleteAnnonce(id){
+  const a = ANNONCES.find(x => x.id === id);
+  ANNONCES = ANNONCES.filter(x => x.id !== id);
+  renderAnnoncesTable();
+  if(a) logAction('a supprimé une annonce', a.nom);
+  showToast('Annonce supprimée');
+}
+
+/* ============ ABONNEMENTS ============ */
+function setTarifTab(v){
+  planTab = v;
+  document.querySelectorAll('#tarif-tabs button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  renderPlansView();
+}
+function renderPlansView(){
+  const tbody = document.getElementById('tarifs-tbody');
+  if(PLANS[planTab].length === 0){
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="3">Aucun tarif pour cette catégorie. Ajoutes-en un.</td></tr>';
+  } else {
+    tbody.innerHTML = PLANS[planTab].map((p,i) => `
+      <tr>
+        <td class="cell-main">${p.dur}</td>
+        <td style="font-family:var(--font-mono)">${p.price.toLocaleString('fr-FR')} FCFA</td>
+        <td>
+          <div class="row-actions">
+            <button class="act-btn" data-role="admin" onclick="openTarifModal(${i})" title="Modifier"><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg></button>
+            <button class="act-btn danger" data-role="admin" onclick="deleteTarif(${i})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+  renderTarifsStats();
+}
+function renderTarifsStats(){
+  const allPrices = [...PLANS.examens, ...PLANS.concours, ...PLANS.examens_academiques].map(p => p.price);
+  const avg = allPrices.length ? Math.round(allPrices.reduce((a,b) => a+b, 0) / allPrices.length) : 0;
+  document.getElementById('tarifs-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Formules — fonction publique</span></div><div class="val">${PLANS.examens.length}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Formules — écoles publiques</span></div><div class="val">${PLANS.concours.length}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Formules — examens académiques</span></div><div class="val">${PLANS.examens_academiques.length}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Prix moyen</span></div><div class="val">${avg.toLocaleString('fr-FR')} <span style="font-size:12px;color:var(--text-faint)">FCFA</span></div></div>
+  `;
+}
+function openTarifModal(index){
+  const editing = index !== undefined;
+  document.getElementById('tarif-modal-title').textContent = editing ? 'Modifier le tarif' : 'Ajouter un tarif';
+  document.getElementById('tarif-index').value = editing ? index : '';
+  document.getElementById('tarif-groupe').value = planTab;
+  const p = editing ? PLANS[planTab][index] : null;
+  document.getElementById('tarif-dur').value = p ? p.dur : '';
+  document.getElementById('tarif-prix').value = p ? p.price : '';
+  openModal('modal-tarif');
+}
+function tarifGroupeLabel(groupe){
+  if(groupe === 'examens') return 'Fonction publique';
+  if(groupe === 'concours') return 'Écoles publiques';
+  return 'Examens académiques';
+}
+function saveTarif(){
+  const index = document.getElementById('tarif-index').value;
+  const groupe = document.getElementById('tarif-groupe').value;
+  const dur = document.getElementById('tarif-dur').value.trim();
+  const price = parseInt(document.getElementById('tarif-prix').value, 10);
+  if(!dur || !price){ showToast('Renseigne la durée et le prix'); return; }
+  const groupeLabel = tarifGroupeLabel(groupe);
+  if(index !== ''){
+    Object.assign(PLANS[groupe][parseInt(index,10)], {dur, price});
+    logAction('a modifié un tarif', dur + ' — ' + groupeLabel);
+    showToast('Tarif mis à jour');
+  } else {
+    PLANS[groupe].push({dur, price});
+    logAction('a ajouté un tarif', dur + ' — ' + groupeLabel);
+    showToast('Tarif ajouté');
+  }
+  closeModal('modal-tarif');
+  if(groupe === planTab) renderPlansView();
+}
+function deleteTarif(index){
+  const t = PLANS[planTab][index];
+  const groupeLabel = tarifGroupeLabel(planTab);
+  PLANS[planTab].splice(index, 1);
+  renderPlansView();
+  logAction('a supprimé un tarif', t.dur + ' — ' + groupeLabel);
+  showToast('Tarif supprimé');
+}
+function renderSubs(){
+  const search = (document.getElementById('sub-search').value || '').toLowerCase();
+  const fg = document.getElementById('sub-filter-groupe').value;
+  const fs = document.getElementById('sub-filter-statut').value;
+  const rows = SUBSCRIBERS.filter(s => {
+    return (fg === 'tous' || s.groupe === fg) && (fs === 'tous' || s.statut === fs) && (search === '' || s.nom.toLowerCase().includes(search));
+  });
+  document.getElementById('sub-count').textContent = rows.length + (rows.length > 1 ? ' abonnés' : ' abonné');
+  const tbody = document.getElementById('subs-tbody');
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Aucun abonné ne correspond à ces filtres.</td></tr>'; renderPager('abonnes-pager','abonnes',1,1); renderAbonnesStats(); return; }
+  const {pageRows, totalPages, page} = paginate('abonnes', rows);
+  tbody.innerHTML = pageRows.map(s => `
+    <tr>
+      <td class="cell-main">${s.nom}</td>
+      <td>${s.formule}</td>
+      <td><span class="tag tag-${groupeSlug(s.groupe)}">${s.groupe}</span></td>
+      <td>${s.debut}</td>
+      <td>${s.fin}</td>
+      <td style="font-family:var(--font-mono)">${s.montant}</td>
+      <td><span class="status-pill ${s.statut==='actif'?'on':'off'}">${s.statut==='actif'?'Actif':'Expiré'}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="viewSub(${s.id})" title="Voir"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="act-btn danger" data-role="admin" onclick="deleteSub(${s.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  renderPager('abonnes-pager', 'abonnes', totalPages, page);
+  renderAbonnesStats();
+}
+let currentSubDetail = null;
+function viewSub(id){
+  const s = SUBSCRIBERS.find(x => x.id === id);
+  currentSubDetail = id;
+  document.getElementById('sub-detail-nom').textContent = s.nom;
+  document.getElementById('sub-detail-formule').textContent = 'Formule ' + s.formule;
+  document.getElementById('sub-detail-groupe').textContent = s.groupe;
+  document.getElementById('sub-detail-montant').textContent = s.montant;
+  document.getElementById('sub-detail-debut').textContent = s.debut;
+  document.getElementById('sub-detail-fin').textContent = s.fin;
+  document.getElementById('sub-detail-statut').innerHTML = `<span class="status-pill ${s.statut==='actif'?'on':'off'}">${s.statut==='actif'?'Actif':'Expiré'}</span>`;
+  openModal('modal-sub-detail');
+}
+function deleteSub(id){
+  const s = SUBSCRIBERS.find(x => x.id === id);
+  SUBSCRIBERS = SUBSCRIBERS.filter(x => x.id !== id);
+  renderSubs();
+  if(s) logAction('a supprimé un abonnement', s.nom + ' — ' + s.formule);
+  showToast('Abonnement supprimé');
+}
+function deleteSubFromModal(){
+  closeModal('modal-sub-detail');
+  deleteSub(currentSubDetail);
+}
+function renderAbonnesStats(){
+  const actifs = SUBSCRIBERS.filter(s => s.statut === 'actif').length;
+  const expires = SUBSCRIBERS.filter(s => s.statut !== 'actif').length;
+  const revenu = SUBSCRIBERS.reduce((sum, s) => sum + (parseInt(s.montant.replace(/[^\d]/g,''),10) || 0), 0);
+  document.getElementById('abonnes-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Abonnés actifs</span></div><div class="val" style="color:var(--green)">${actifs}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Abonnés expirés</span></div><div class="val">${expires}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Revenu abonnements</span></div><div class="val">${revenu.toLocaleString('fr-FR')} <span style="font-size:12px;color:var(--text-faint)">FCFA</span></div></div>
+  `;
+}
+
+/* ============ UTILISATEURS ============ */
+function renderUsersTable(){
+  renderUsersStats();
+  const search = (document.getElementById('user-search').value || '').toLowerCase();
+  const fs = document.getElementById('user-filter-statut').value;
+  const rows = USERS.filter(u => (fs === 'tous' || u.statut === fs) && (u.nom + ' ' + u.ville).toLowerCase().includes(search));
+  const tbody = document.getElementById('users-tbody');
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Aucun utilisateur trouvé.</td></tr>'; renderPager('utilisateurs-pager','utilisateurs',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('utilisateurs', rows);
+  tbody.innerHTML = pageRows.map(u => `
+    <tr>
+      <td class="cell-main">${u.nom}</td>
+      <td>${u.contact}</td>
+      <td>${u.ville}</td>
+      <td>${u.inscrit}</td>
+      <td style="font-family:var(--font-mono)">${u.achats}</td>
+      <td><span class="status-pill ${u.statut==='actif'?'on':'off'}">${u.statut==='actif'?'Actif':'Suspendu'}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="viewUser('${u.nom}')" title="Voir"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="act-btn danger" data-role="admin" onclick="toggleUserStatus('${u.nom}')" title="Suspendre / réactiver"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 8l8 8" stroke-linecap="round"/></svg></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  renderPager('utilisateurs-pager', 'utilisateurs', totalPages, page);
+}
+function renderUsersStats(){
+  const actifs = USERS.filter(u => u.statut === 'actif').length;
+  const suspendus = USERS.filter(u => u.statut === 'suspendu').length;
+  const achats = USERS.reduce((sum, u) => sum + u.achats, 0);
+  document.getElementById('users-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Utilisateurs actifs</span></div><div class="val" style="color:var(--green)">${actifs}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Suspendus</span></div><div class="val">${suspendus}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Achats cumulés</span></div><div class="val">${achats}</div></div>
+  `;
+}
+function viewUser(nom){
+  const u = USERS.find(x => x.nom === nom);
+  const history = PAYMENTS.filter(p => p.user === nom);
+  document.getElementById('user-detail-name').textContent = u.nom;
+  document.getElementById('user-detail-meta').textContent = u.ville + ' · Inscrit le ' + u.inscrit;
+  document.getElementById('user-detail-contact').textContent = u.contact;
+  document.getElementById('user-detail-achats').textContent = u.achats;
+  document.getElementById('user-detail-statut').innerHTML = `<span class="status-pill ${u.statut==='actif'?'on':'off'}">${u.statut==='actif'?'Actif':'Suspendu'}</span>`;
+  document.getElementById('user-detail-history').innerHTML = history.length
+    ? history.map(p => `<div class="activity-item"><span class="dot ${p.statut==='Réussi'?'green':'blue'}"></span><div><div class="t">${p.desc}</div><div class="s">${p.date} · ${p.methode} · ${p.montant}</div></div></div>`).join('')
+    : '<div class="activity-item"><div class="s">Aucune transaction enregistrée.</div></div>';
+  currentUserDetail = nom;
+  openModal('modal-user-detail');
+}
+function toggleUserStatusFromModal(){
+  toggleUserStatus(currentUserDetail);
+  viewUser(currentUserDetail);
+}
+function toggleUserStatus(nom){
+  const u = USERS.find(x => x.nom === nom);
+  u.statut = u.statut === 'actif' ? 'suspendu' : 'actif';
+  renderUsersTable();
+  logAction(u.statut === 'actif' ? 'a réactivé un utilisateur' : 'a suspendu un utilisateur', nom);
+  showToast(u.statut === 'actif' ? 'Utilisateur réactivé' : 'Utilisateur suspendu');
+}
+
+/* ============ PAIEMENTS ============ */
+const PAYMENT_PERIOD_STATS = {
+  '7':  {total:154000, taux:94.1, methode:'MTN MoMo'},
+  '30': {total:486500, taux:96.4, methode:'MTN MoMo'},
+  '90': {total:1340000, taux:95.8, methode:'MTN MoMo'},
+};
+function renderPaymentKpis(){
+  const period = document.getElementById('pay-period').value;
+  const d = PAYMENT_PERIOD_STATS[period];
+  document.getElementById('paiements-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Total encaissé</span></div><div class="val">${d.total.toLocaleString('fr-FR')} <span style="font-size:12px;color:var(--text-faint)">FCFA</span></div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Taux de réussite</span></div><div class="val">${d.taux.toString().replace('.',',')}%</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Méthode la + utilisée</span></div><div class="val" style="font-size:18px;">${d.methode}</div></div>
+  `;
+}
+function renderPaymentsTable(){
+  const search = (document.getElementById('pay-search').value || '').toLowerCase();
+  const fs = document.getElementById('pay-filter-statut').value;
+  const rows = PAYMENTS.filter(p => (fs === 'tous' || p.statut === fs) && (p.user + ' ' + p.desc).toLowerCase().includes(search));
+  const tbody = document.getElementById('payments-tbody');
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Aucune transaction trouvée.</td></tr>'; renderPager('paiements-pager','paiements',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('paiements', rows);
+  tbody.innerHTML = pageRows.map(p => `
+    <tr>
+      <td>${p.date}</td>
+      <td class="cell-main">${p.user}</td>
+      <td>${p.desc}</td>
+      <td>${p.methode}</td>
+      <td style="font-family:var(--font-mono)">${p.montant}</td>
+      <td><span class="status-pill ${p.statut==='Réussi'?'on':'off'}">${p.statut}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="viewPayment(${p.id})" title="Voir"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="act-btn danger" data-role="admin" onclick="deletePayment(${p.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+  renderPager('paiements-pager', 'paiements', totalPages, page);
+}
+let currentPaymentDetail = null;
+function viewPayment(id){
+  const p = PAYMENTS.find(x => x.id === id);
+  currentPaymentDetail = id;
+  document.getElementById('pay-detail-montant').textContent = p.montant;
+  document.getElementById('pay-detail-desc').textContent = p.desc;
+  document.getElementById('pay-detail-user').textContent = p.user;
+  document.getElementById('pay-detail-date').textContent = p.date;
+  document.getElementById('pay-detail-methode').textContent = p.methode;
+  document.getElementById('pay-detail-ref').textContent = p.ref;
+  document.getElementById('pay-detail-statut').innerHTML = `<span class="status-pill ${p.statut==='Réussi'?'on':'off'}">${p.statut}</span>`;
+  openModal('modal-payment-detail');
+}
+function deletePayment(id){
+  const p = PAYMENTS.find(x => x.id === id);
+  PAYMENTS = PAYMENTS.filter(x => x.id !== id);
+  renderPaymentsTable();
+  if(p) logAction('a supprimé une transaction', p.user + ' — ' + p.montant);
+  showToast('Transaction supprimée');
+}
+function deletePaymentFromModal(){
+  closeModal('modal-payment-detail');
+  deletePayment(currentPaymentDetail);
+}
+
+/* ============ MESSAGES ============ */
+function setMessageTab(v){
+  messageFilter = v;
+  document.querySelectorAll('#msg-tabs button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  renderMessagesTable();
+}
+function renderMessagesTable(){
+  renderMessagesStats();
+  const search = (document.getElementById('msg-search').value || '').toLowerCase();
+  const fc = document.getElementById('msg-filter-cat').value;
+  const rows = MESSAGES.filter(m => {
+    const text = (m.nom + ' ' + m.sujet + ' ' + m.corps).toLowerCase();
+    return (messageFilter === 'tous' || m.statut === messageFilter) && (fc === 'tous' || m.categorie === fc) && (search === '' || text.includes(search));
+  });
+  const tbody = document.getElementById('messages-tbody');
+  const statusLabel = {nouveau:['pending','Nouveau'], en_cours:['on','En cours'], resolu:['off','Résolu']};
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Aucun message ici.</td></tr>'; renderPager('messages-pager','messages',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('messages', rows);
+  tbody.innerHTML = pageRows.map(m => {
+    const [cls, label] = statusLabel[m.statut];
+    return `
+    <tr>
+      <td class="cell-main">${m.nom}</td>
+      <td>${m.sujet}</td>
+      <td><span class="tag tag-fp">${m.categorie}</span></td>
+      <td>${m.date}</td>
+      <td><span class="status-pill ${cls}">${label}</span></td>
+      <td>
+        <div class="row-actions">
+          <button class="act-btn" onclick="viewMessage(${m.id})" title="Voir"><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="act-btn danger" onclick="deleteMessage(${m.id})" title="Supprimer"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+  renderPager('messages-pager', 'messages', totalPages, page);
+}
+function renderMessagesStats(){
+  const nouveaux = MESSAGES.filter(m => m.statut === 'nouveau').length;
+  const enCours = MESSAGES.filter(m => m.statut === 'en_cours').length;
+  const resolus = MESSAGES.filter(m => m.statut === 'resolu').length;
+  document.getElementById('messages-kpis').innerHTML = `
+    <div class="kpi-card"><div class="top"><span class="lbl">Nouveaux</span></div><div class="val" style="color:var(--gold)">${nouveaux}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">En cours</span></div><div class="val">${enCours}</div></div>
+    <div class="kpi-card"><div class="top"><span class="lbl">Résolus</span></div><div class="val" style="color:var(--green)">${resolus}</div></div>
+  `;
+  document.getElementById('sb-msg-badge').textContent = nouveaux;
+  document.getElementById('sb-msg-badge').style.display = nouveaux > 0 ? 'inline-flex' : 'none';
+}
+function viewMessage(id){
+  const m = MESSAGES.find(x => x.id === id);
+  currentMessageDetail = id;
+  const statusLabel = {nouveau:['pending','Nouveau'], en_cours:['on','En cours'], resolu:['off','Résolu']};
+  const [cls, label] = statusLabel[m.statut];
+  document.getElementById('msg-detail-badges').innerHTML = `<span class="status-pill ${cls}">${label}</span><span class="tag tag-fp">${m.categorie}</span>`;
+  document.getElementById('msg-detail-sujet').textContent = m.sujet;
+  document.getElementById('msg-detail-meta').textContent = 'Envoyé le ' + m.date;
+  document.getElementById('msg-detail-nom').textContent = m.nom;
+  document.getElementById('msg-detail-contact').textContent = m.contact;
+  document.getElementById('msg-detail-corps').textContent = m.corps;
+  document.getElementById('msg-detail-reponse').value = '';
+  openModal('modal-message-detail');
+}
+function setMessageStatus(statut){
+  const m = MESSAGES.find(x => x.id === currentMessageDetail);
+  m.statut = statut;
+  closeModal('modal-message-detail');
+  renderMessagesTable();
+  updateNotifPing();
+  logAction(statut === 'resolu' ? 'a résolu un message' : 'a pris en charge un message', m.sujet + ' · ' + m.nom);
+  showToast(statut === 'resolu' ? 'Message marqué comme résolu' : 'Message marqué en cours');
+}
+function sendMessageReply(){
+  const text = document.getElementById('msg-detail-reponse').value.trim();
+  if(!text){ showToast('Écris une réponse avant de l\'envoyer'); return; }
+  const m = MESSAGES.find(x => x.id === currentMessageDetail);
+  if(m.statut === 'nouveau'){ m.statut = 'en_cours'; renderMessagesTable(); }
+  document.getElementById('msg-detail-reponse').value = '';
+  logAction('a répondu à un message', m.sujet + ' · ' + m.nom);
+  showToast('Réponse envoyée à ' + m.nom);
+}
+function deleteMessage(id){
+  const m = MESSAGES.find(x => x.id === id);
+  MESSAGES = MESSAGES.filter(x => x.id !== id);
+  renderMessagesTable();
+  updateNotifPing();
+  if(m) logAction('a supprimé un message', m.sujet + ' · ' + m.nom);
+  showToast('Message supprimé');
+}
+function deleteMessageFromModal(){
+  closeModal('modal-message-detail');
+  deleteMessage(currentMessageDetail);
+}
+
+/* ============ TOGGLE SWITCH ============ */
+function toggleSwitch(el){ el.classList.toggle('on'); }
+function toggleNamedSwitch(el, label){
+  el.classList.toggle('on');
+  showToast(label + (el.classList.contains('on') ? ' activé' : ' désactivé'));
+}
+
+/* ============ EXPORT CSV ============ */
+function exportTableToCSV(tbodyId, filename){
+  const table = document.getElementById(tbodyId).closest('table');
+  const allRows = Array.from(table.querySelectorAll('tr'));
+  if(allRows.length === 0 || table.querySelector('.empty-row')){ showToast('Rien à exporter'); return; }
+  const headerCells = Array.from(allRows[0].querySelectorAll('th'));
+  const skipLast = headerCells.length > 0 && headerCells[headerCells.length - 1].textContent.trim() === '';
+  const lines = allRows.map(row => {
+    let cells = Array.from(row.querySelectorAll('th,td'));
+    if(skipLast) cells = cells.slice(0, -1);
+    return cells.map(c => {
+      let t = c.innerText.replace(/\s+/g, ' ').trim();
+      if(/[",\n]/.test(t)) t = '"' + t.replace(/"/g, '""') + '"';
+      return t;
+    }).join(',');
+  });
+  const csv = lines.join('\r\n');
+  const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('Export CSV téléchargé');
+}
+
+/* ============ TOPBAR SEARCH ============ */
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+function handleTopbarSearch(){
+  const q = document.getElementById('topbar-search').value.trim().toLowerCase();
+  const box = document.getElementById('tb-search-results');
+  if(q.length < 2){ box.classList.remove('show'); box.innerHTML = ''; return; }
+
+  const sujets = SUJETS.filter(s => (s.titre+' '+s.meta+' '+s.corps).toLowerCase().includes(q)).slice(0,4);
+  const users = USERS.filter(u => (u.nom+' '+u.ville).toLowerCase().includes(q)).slice(0,3);
+  const contribs = CONTRIBUTIONS.filter(c => (c.nom+' '+c.matiere+' '+c.auteur).toLowerCase().includes(q)).slice(0,3);
+  const annonces = ANNONCES.filter(a => (a.nom+' '+a.org).toLowerCase().includes(q)).slice(0,3);
+
+  let html = '';
+  if(sujets.length){
+    html += '<div class="tsr-group">Catalogue</div>' + sujets.map(s => `
+      <div class="tsr-item" data-page="catalogue" data-q="${escapeHtml(s.titre)}">
+        <div><div class="t">${s.titre}</div><div class="s">${s.meta}</div></div>
+        <span class="tag tag-${groupeSlug(s.groupe)}">${s.corps}</span>
+      </div>`).join('');
+  }
+  if(users.length){
+    html += '<div class="tsr-group">Utilisateurs</div>' + users.map(u => `
+      <div class="tsr-item" data-page="utilisateurs" data-q="${escapeHtml(u.nom)}">
+        <div><div class="t">${u.nom}</div><div class="s">${u.ville}</div></div>
+      </div>`).join('');
+  }
+  if(contribs.length){
+    html += '<div class="tsr-group">Contributions</div>' + contribs.map(c => `
+      <div class="tsr-item" data-page="contributions" data-q="">
+        <div><div class="t">${c.nom}</div><div class="s">${c.matiere} · ${c.auteur}</div></div>
+      </div>`).join('');
+  }
+  if(annonces.length){
+    html += '<div class="tsr-group">Annonces</div>' + annonces.map(a => `
+      <div class="tsr-item" data-page="annonces" data-q="${escapeHtml(a.nom)}">
+        <div><div class="t">${a.nom}</div><div class="s">${a.org}</div></div>
+      </div>`).join('');
+  }
+  box.innerHTML = html || `<div class="tsr-empty">Aucun résultat pour « ${escapeHtml(q)} »</div>`;
+  box.classList.add('show');
+}
+document.addEventListener('click', function(e){
+  const item = e.target.closest('.tsr-item');
+  if(item){ goToSearchResult(item.dataset.page, item.dataset.q); return; }
+  if(!e.target.closest('.tb-search-wrap')){ document.getElementById('tb-search-results').classList.remove('show'); }
+  if(!e.target.closest('.notif-wrap')){ document.getElementById('notif-dropdown').classList.remove('show'); }
+});
+function goToSearchResult(page, query){
+  goPage(page);
+  document.getElementById('tb-search-results').classList.remove('show');
+  document.getElementById('topbar-search').value = '';
+  setTimeout(() => {
+    if(page === 'catalogue'){ document.getElementById('cat-search').value = query; renderCatalogueTable(); }
+    if(page === 'utilisateurs'){ document.getElementById('user-search').value = query; renderUsersTable(); }
+    if(page === 'annonces'){ document.getElementById('ann-search').value = query; renderAnnoncesTable(); }
+  }, 60);
+}
+
+/* ============ NOTIFICATIONS ============ */
+function toggleNotifDropdown(){
+  const dd = document.getElementById('notif-dropdown');
+  const willShow = !dd.classList.contains('show');
+  document.getElementById('tb-search-results').classList.remove('show');
+  dd.classList.toggle('show', willShow);
+  if(willShow) renderNotifDropdown();
+}
+function renderNotifDropdown(){
+  const pending = CONTRIBUTIONS.filter(c => c.statut === 'en_attente').length;
+  const newMsgs = MESSAGES.filter(m => m.statut === 'nouveau').length;
+  let items = [];
+  if(newMsgs > 0){ items.push({c:'blue', t: newMsgs + ' nouveau(x) message(s)', s:'Réclamations et correspondance à traiter'}); }
+  if(pending > 0){ items.push({c:'gold', t: pending + ' contribution(s) en attente', s:'À modérer dès maintenant'}); }
+  items = items.concat(ACTIVITY);
+  document.getElementById('notif-list').innerHTML = items.slice(0,5).map(a => `
+    <div class="activity-item"><span class="dot ${a.c}"></span><div><div class="t">${a.t}</div><div class="s">${a.s}</div></div></div>
+  `).join('');
+}
+function updateNotifPing(){
+  const pending = CONTRIBUTIONS.filter(c => c.statut === 'en_attente').length;
+  const newMsgs = MESSAGES.filter(m => m.statut === 'nouveau').length;
+  document.getElementById('notif-ping').style.display = (pending > 0 || newMsgs > 0) ? 'block' : 'none';
+}
+
+/* ============ JOURNAL D'ACTIVITÉ ============ */
+let currentUserName = 'Judicaël A.';
+let LOGS = [
+  {id:1, auteur:'Judicaël A.', action:'a approuvé une contribution', cible:'Concours Trésor · Ismaël K.', date:'Aujourd\'hui · 09:14'},
+  {id:2, auteur:'Rachidi A.', action:'a ajouté un sujet', cible:'Informatique — Concours Ministères', date:'Hier · 17:02'},
+  {id:3, auteur:'Judicaël A.', action:'a modifié un tarif', cible:'3 mois — Fonction publique', date:'Hier · 11:35'},
+  {id:4, auteur:'Rachidi A.', action:'a rejeté une contribution', cible:'Concours Police · Chimène H.', date:'10 août · 16:20'},
+  {id:5, auteur:'Judicaël A.', action:'a suspendu un utilisateur', cible:'Godfroy T.', date:'09 août · 10:47'},
+  {id:6, auteur:'Judicaël A.', action:'a ajouté un corps', cible:'Ministères', date:'07 août · 14:12'},
+  {id:7, auteur:'Rachidi A.', action:'a répondu à un message', cible:'Impossible de télécharger le PDF · Ulrich B.', date:'06 août · 09:30'},
+  {id:8, auteur:'Judicaël A.', action:'a créé une annonce', cible:'Concours Ministères', date:'03 août · 15:55'},
+];
+let logIdCounter = 9;
+function logAction(action, cible){
+  LOGS.unshift({id: logIdCounter++, auteur: currentUserName, action, cible, date: "Aujourd'hui · " + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})});
+  populateLogAuteurFilter();
+  if(document.getElementById('page-logs').classList.contains('active')) renderLogsTable();
+}
+function populateLogAuteurFilter(){
+  const sel = document.getElementById('log-filter-auteur');
+  const current = sel.value;
+  const auteurs = [...new Set(LOGS.map(l => l.auteur))];
+  sel.innerHTML = '<option value="tous">Tous les membres</option>' + auteurs.map(a => `<option value="${a}">${a}</option>`).join('');
+  sel.value = auteurs.includes(current) ? current : 'tous';
+}
+function renderLogsTable(){
+  const search = (document.getElementById('log-search').value || '').toLowerCase();
+  const fa = document.getElementById('log-filter-auteur').value;
+  const rows = LOGS.filter(l => (fa === 'tous' || l.auteur === fa) && (l.action + ' ' + l.cible).toLowerCase().includes(search));
+  const tbody = document.getElementById('logs-tbody');
+  if(rows.length === 0){ tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Aucune action trouvée.</td></tr>'; renderPager('logs-pager','logs',1,1); return; }
+  const {pageRows, totalPages, page} = paginate('logs', rows);
+  tbody.innerHTML = pageRows.map(l => `
+    <tr>
+      <td class="cell-main">${l.auteur}</td>
+      <td>${l.action}</td>
+      <td>${l.cible}</td>
+      <td>${l.date}</td>
+    </tr>
+  `).join('');
+  renderPager('logs-pager', 'logs', totalPages, page);
+}
+
+/* ============ ÉQUIPE ============ */
+let TEAM = [
+  {id:1, nom:'Judicaël A.', role:'Administrateur', statut:'actif'},
+  {id:2, nom:'Rachidi A.', role:'Modérateur', statut:'actif'},
+];
+let teamIdCounter = 3;
+function renderTeam(){
+  document.getElementById('team-list').innerHTML = TEAM.map(t => `
+    <div class="toggle-row">
+      <div><div class="t">${t.nom}</div><div class="s">${t.role}</div></div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span class="status-pill ${t.statut==='actif'?'on':'off'}">${t.statut==='actif'?'Actif':'Révoqué'}</span>
+        <button class="act-btn danger" onclick="removeTeamMember(${t.id})" title="Révoquer l'accès"><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M7 7l1 13h8l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </div>
+  `).join('');
+}
+function openInviteModal(){
+  document.getElementById('invite-nom').value = '';
+  document.getElementById('invite-email').value = '';
+  document.getElementById('invite-role').value = 'Modérateur';
+  openModal('modal-invite');
+}
+function sendInvite(){
+  const nom = document.getElementById('invite-nom').value.trim();
+  const email = document.getElementById('invite-email').value.trim();
+  const role = document.getElementById('invite-role').value;
+  if(!nom || !email){ showToast('Renseigne le nom et l\'email'); return; }
+  TEAM.push({id: teamIdCounter++, nom, role, statut:'actif'});
+  renderTeam();
+  closeModal('modal-invite');
+  logAction('a invité un membre', nom + ' — ' + role);
+  showToast('Invitation envoyée à ' + email);
+}
+function removeTeamMember(id){
+  const t = TEAM.find(x => x.id === id);
+  TEAM = TEAM.filter(x => x.id !== id);
+  renderTeam();
+  if(t) logAction("a révoqué l'accès", t.nom + ' — ' + t.role);
+  showToast('Accès révoqué');
+}
+
+/* ============ MODALS / TOAST ============ */
+function openModal(id){ document.getElementById(id).classList.add('show'); document.body.style.overflow = 'hidden'; }
+function closeModal(id){ document.getElementById(id).classList.remove('show'); document.body.style.overflow = ''; }
+
+/* ============ PARAMÈTRES ============ */
+function setParamTab(v){
+  document.querySelectorAll('#param-tabs button').forEach(b => b.classList.toggle('active', b.dataset.v === v));
+  document.querySelectorAll('.param-panel').forEach(p => p.classList.toggle('active', p.id === 'param-' + v));
+}
+function changePassword(){
+  const pass = document.getElementById('sec-new-pass').value;
+  const confirm = document.getElementById('sec-confirm-pass').value;
+  if(!pass || pass.length < 6){ showToast('Le mot de passe doit contenir au moins 6 caractères'); return; }
+  if(pass !== confirm){ showToast('Les deux mots de passe ne correspondent pas'); return; }
+  document.getElementById('sec-new-pass').value = '';
+  document.getElementById('sec-confirm-pass').value = '';
+  showToast('Mot de passe mis à jour');
+}
+
+/* ============ DÉCONNEXION ============ */
+function logout(){ openModal('modal-logout'); }
+function confirmLogout(){
+  closeModal('modal-logout');
+  document.getElementById('logout-screen').classList.add('show');
+}
+function reLogin(){
+  document.getElementById('logout-screen').classList.remove('show');
+  document.body.classList.remove('logged-in');
+}
+
+/* ============ CONNEXION & RÔLES ============ */
+let currentRole = 'admin';
+function login(){
+  const role = document.getElementById('login-role').value;
+  const email = document.getElementById('login-email').value.trim();
+  currentRole = role;
+  document.body.classList.add('logged-in');
+  document.body.classList.toggle('role-moderateur', role === 'moderateur');
+  const name = email ? email.split('@')[0] : (role === 'admin' ? 'Judicaël A.' : 'Rachidi A.');
+  currentUserName = name;
+  document.querySelectorAll('.sb-admin .n').forEach(el => el.textContent = name);
+  document.querySelectorAll('.sb-admin .r').forEach(el => el.textContent = role === 'admin' ? 'Administrateur' : 'Modérateur');
+  document.querySelectorAll('.sb-admin .av').forEach(el => el.textContent = name.charAt(0).toUpperCase());
+  if(role === 'moderateur'){
+    goPage('overview');
+    showToast('Connecté en tant que Modérateur — accès limité');
+  } else {
+    showToast('Connecté en tant qu\'Administrateur');
+  }
+}
+let toastTimer;
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ============ INIT ============ */
+renderOverview();
+renderCatalogueTable();
+renderCategoriesTable();
+renderContribTable();
+renderAnnoncesTable();
+renderPlansView();
+renderSubs();
+renderUsersTable();
+renderPaymentKpis();
+renderPaymentsTable();
+renderMessagesTable();
+populateLogAuteurFilter();
+renderLogsTable();
+renderTeam();
+updateNotifPing();
+</script>
+</body>
+</html>
