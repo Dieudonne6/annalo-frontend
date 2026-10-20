@@ -41,10 +41,40 @@ dans `tailwind.config.js` depuis les variables CSS `:root` de la maquette.
   pour Sujets/Corps/Tarifs/Abonnés/Annonces/Paramètres (à construire), page
   Contributions déjà fonctionnelle (branchée à l'API).
 
+**Site public refait d'après la maquette (octobre 2026)** :
+- Le `<style>` de `maquettes/index (3).html` est copié tel quel dans
+  `src/styles/site.css` (ne pas le réécrire en Tailwind) ; les compléments
+  (erreurs de formulaire, boutons désactivés...) sont dans
+  `src/styles/site-extra.css`. Le JSX reprend les classes de la maquette.
+- Onglets du catalogue = voies backend **Examens / Concours / National**
+  (choix validé : on garde les voies backend plutôt que les libellés
+  "Fonction publique / Écoles / Examens nationaux" de la maquette).
+- Accueil (`src/components/home/`) : hero + bande de stats (comptes réels de
+  l'API), catégories (examens de la voie + nombre de sujets), catalogue
+  (filtres examen/niveau/matière, recherche, "voir tout" puis "charger
+  plus"), comment ça marche, annonces, tarifs (paiement abonnement),
+  bande contribuer.
+- Modales (`src/components/modals/` + `AuthModal`) pilotées par
+  `UIContext` (`openModal(name, payload)`, `toast`, `requireAuth`) :
+  connexion / inscription / mot de passe oublié, contact, compte
+  (abonnements + paiements ; `/compte` ouvre cette modale), détail d'une
+  épreuve (téléchargement si accès), annonce, contribution.
+- Panier : tiroir + bouton flottant, paiement FedaPay par redirection,
+  retour sur `/paiement/retour` (`src/pages/PaymentReturn.jsx`).
+- Menu mobile (burger) fait dans `Header`.
+- Favoris en `localStorage` (pas de modèle backend).
+- Manques backend constatés : pas de liste des épreuves achetées à
+  l'unité (l'onglet "Mes sujets" de la maquette affiche donc les
+  abonnements), un seul fichier par contribution (pas de corrigé séparé),
+  pas de `starts_at` dans l'API des annonces (statut toujours "Ouvert").
+- ⚠️ `site.css` contient des sélecteurs globaux (`header`, `footer`,
+  `body::before`...) : les isoler du back-office quand on intégrera
+  `annalo-admin (3).html`.
+
 Chaque fichier a des commentaires `// TODO (Claude Code): ...` aux endroits
 qui restent à faire — grep `TODO` dans `src/` pour toutes les retrouver.
 
-**Rien n'a été installé ni testé** (pas d'accès réseau pendant la création
+**Installé et compilé** (`npm install`, `vite build` OK). Ancienne note :
 de ce squelette) — `npm install` n'a jamais été lancé.
 
 ## À faire ensuite, dans l'ordre

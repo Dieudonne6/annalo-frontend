@@ -1,69 +1,72 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 
-import { fetchPapers } from "../api/catalog";
-import FilterBar from "../components/catalog/FilterBar";
-import PaperCard from "../components/catalog/PaperCard";
+import { fetchExams, fetchLevels, fetchOrganizations, fetchPapers } from "../api/catalog";
+import { fetchAnnouncements } from "../api/cms";
+import { scrollToId } from "../components/common/SectionLink";
+import AnnouncementsSection from "../components/home/AnnouncementsSection";
+import CatalogueSection from "../components/home/CatalogueSection";
+import CategoriesSection from "../components/home/CategoriesSection";
+import ContributeBand from "../components/home/ContributeBand";
+import Hero from "../components/home/Hero";
+import HowItWorks from "../components/home/HowItWorks";
+import PlansSection from "../components/home/PlansSection";
+import StatsStrip from "../components/home/StatsStrip";
+import useReveal from "../hooks/useReveal";
+import { TRACKS } from "../lib/format";
 
-/**
- * Page d'accueil publique. Sections à reconstituer depuis index__3_.html :
- * hero ("Prépare et réussis tes..."), "Trois voies, un seul catalogue",
- * catalogue filtrable (ci-dessous, déjà câblé à l'API), "Concours à suivre"
- * (Announcement), "Un abonnement, un accès illimité" (plans), bande
- * "Contribuer un sujet".
- *
- * TODO (Claude Code): découper en sous-composants dédiés au fur et à mesure
- * (Hero.jsx, AnnouncementBand.jsx, PlansSection.jsx, ContributeBand.jsx...)
- * plutôt que de tout garder ici.
- */
+const countOf = (request) => request.then(({ data }) => data.count ?? null).catch(() => null);
+
+/** Page d'accueil publique : reprend section par section maquettes/index (3).html. */
 export default function Home() {
-  const [track, setTrack] = useState("examen");
-  const [filters, setFilters] = useState({});
-  const [papers, setPapers] = useState([]);
-  const [selectedPaper, setSelectedPaper] = useState(null);
+  const rootRef = useRef(null);
+  const location = useLocation();
+  const [stats, setStats] = useState(null);
+  const [announcements, setAnnouncements] = useState(null);
+  const [filters, setFilters] = useState({ track: TRACKS[0].value, exam: "", level: "", subject: "", search: "" });
+
+  useReveal(rootRef);
 
   useEffect(() => {
-    fetchPapers({ track, ...filters }).then(({ data }) => {
-      setPapers(data.results ?? data);
-    });
-  }, [track, filters]);
+    Promise.all([
+      countOf(fetchPapers()),
+      countOf(fetchExams()),
+      countOf(fetchOrganizations()),
+      countOf(fetchLevels()),
+    ]).then(([papers, exams, organizations, levels]) => setStats({ papers, exams, organizations, levels }));
 
-  function handleFilterChange(key, value) {
-    setFilters((prev) => ({ ...prev, [key]: value || undefined }));
+    fetchAnnouncements()
+      .then(({ data }) => setAnnouncements(data.results ?? data))
+      .catch(() => setAnnouncements([]));
+  }, []);
+
+  // Arrivée depuis une autre page sur "/#section".
+  useEffect(() => {
+    if (!location.hash) return undefined;
+    const t = setTimeout(() => scrollToId(location.hash.slice(1)), 100);
+    return () => clearTimeout(t);
+  }, [location.hash]);
+
+  function pickExam(track, examId) {
+    setFilters({ track, exam: examId, level: "", subject: "", search: "" });
+    scrollToId("catalogue");
   }
 
+  // Annonce dont l'échéance est la plus proche, pour le ticket du hero.
+  const nextAnnouncement = (announcements ?? [])
+    .filter((a) => a.ends_at)
+    .sort((a, b) => new Date(a.ends_at) - new Date(b.ends_at))[0];
+
   return (
-    <main>
-      {/* Hero */}
-      <section className="bg-navy py-16 text-center text-white2">
-        <h1 className="mx-auto max-w-2xl text-4xl font-bold">
-          Prépare et réussis tes concours et examens
-        </h1>
-        <p className="mt-3 text-white2/80">
-          Trouve ton sujet en quelques secondes, dans un seul catalogue.
-        </p>
-      </section>
-
-      {/* Catalogue */}
-      <section id="catalogue" className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-6 text-2xl font-bold text-navy">
-          Trois voies, un seul catalogue
-        </h2>
-        <FilterBar
-          track={track}
-          onTrackChange={setTrack}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-        />
-        <div id="cat-grid" className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {papers.map((paper) => (
-            <PaperCard key={paper.id} paper={paper} onOpenDetail={setSelectedPaper} />
-          ))}
-        </div>
-      </section>
-
-      {/* TODO: Section "Un abonnement, un accès illimité" (plans-examens/concours/national) */}
-      {/* TODO: Bande "Contribuer un sujet" (modal-contrib) */}
-      {/* TODO: Modale "modal-detail" pilotée par `selectedPaper` */}
+    <main ref={rootRef}>
+      <Hero stats={stats} nextAnnouncement={nextAnnouncement} />
+      <StatsStrip stats={stats} />
+      <CategoriesSection onPickExam={pickExam} />
+      <CatalogueSection filters={filters} onFiltersChange={setFilters} />
+      <HowItWorks />
+      <AnnouncementsSection announcements={announcements} />
+      <PlansSection />
+      <ContributeBand />
     </main>
   );
 }

@@ -14,7 +14,10 @@ export default {
         text: { DEFAULT: "#16212F", soft: "#56636F", faint: "#8B939E" },
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
+        // Polices de la maquette (chargées dans index.html)
+        sans: ["Manrope", "system-ui", "sans-serif"],
+        display: ["Fraunces", "serif"],
+        mono: ["IBM Plex Mono", "monospace"],
       },
     },
   },

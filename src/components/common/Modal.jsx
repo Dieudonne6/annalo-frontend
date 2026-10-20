@@ -1,21 +1,27 @@
-export default function Modal({ isOpen, onClose, title, children, maxWidth = "max-w-md" }) {
+import { useEffect } from "react";
+
+import { CloseIcon } from "../../lib/icons";
+
+/** Structure "modal-backdrop" > "modal" de la maquette. Échap ferme la modale. */
+export default function Modal({ isOpen, onClose, className = "", children }) {
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && onClose();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-ink/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className={`relative w-full ${maxWidth} rounded-2xl bg-white2 p-6 shadow-xl`}>
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-text-soft hover:text-text"
-          aria-label="Fermer"
-        >
-          ✕
+    <div
+      className="modal-backdrop show"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div className={`modal ${className}`} role="dialog" aria-modal="true">
+        <button className="modal-close" onClick={onClose} aria-label="Fermer">
+          <CloseIcon />
         </button>
-        {title && <h3 className="mb-4 text-lg font-bold text-navy">{title}</h3>}
         {children}
       </div>
     </div>

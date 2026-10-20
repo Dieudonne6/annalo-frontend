@@ -1,24 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { confirmPasswordReset, requestPasswordReset } from "../../api/auth";
 import { useAuth } from "../../context/AuthContext";
-import Button from "../common/Button";
+import { useUI } from "../../context/UIContext";
+import { apiErrorMessage } from "../../lib/api-helpers";
+import { firstName } from "../../lib/format";
 import Modal from "../common/Modal";
 
-/**
- * Correspond à "modal-auth" / "auth-phone" de la maquette.
- * TODO (Claude Code): ajouter la validation des champs, les messages
- * d'erreur de l'API, et le toggle connexion ↔ inscription.
- */
-export default function AuthModal({ isOpen, onClose }) {
+const TITLES = {
+  login: ["Connexion à Annalo", "Retrouve ton catalogue et ton historique d'achats."],
+  register: ["Créer un compte", "Quelques secondes suffisent pour commencer à réviser."],
+  reset: ["Mot de passe oublié", "On t'envoie un code par SMS pour choisir un nouveau mot de passe."],
+  resetConfirm: ["Nouveau mot de passe", "Saisis le code reçu par SMS et ton nouveau mot de passe."],
+};
+
+const EMPTY = { full_name: "", phone: "", email: "", password: "", code: "" };
+
+/** "modal-auth" de la maquette : connexion, inscription et mot de passe oublié. */
+export default function AuthModal() {
   const { login, register } = useAuth();
-  const [mode, setMode] = useState("login"); // "login" | "register"
-  const [form, setForm] = useState({ phone: "", password: "", full_name: "" });
+  const { modal, closeModal, toast } = useUI();
+  const isOpen = modal.name === "auth";
+  const [mode, setMode] = useState("login");
+  const [form, setForm] = useState(EMPTY);
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleChange(e) {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  }
+  useEffect(() => {
+    if (isOpen) {
+      setMode("login");
+      setError("");
+      setForm(EMPTY);
+    }
+  }, [isOpen]);
+
+  const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
+  const switchMode = (next) => (e) => {
+    e?.preventDefault();
+    setError("");
+    setMode(next);
+  };
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -26,61 +47,105 @@ export default function AuthModal({ isOpen, onClose }) {
     setIsSubmitting(true);
     try {
       if (mode === "login") {
-        await login(form.phone, form.password);
+        const me = await login(form.phone.trim(), form.password);
+        closeModal();
+        toast(`Connecté(e) — bienvenue ${firstName(me.full_name)}`);
+      } else if (mode === "register") {
+        const me = await register({
+          full_name: form.full_name.trim(),
+          phone: form.phone.trim(),
+          email: form.email.trim() || null,
+          password: form.password,
+        });
+        closeModal();
+        toast(`Compte créé — bienvenue ${firstName(me.full_name)}`);
+      } else if (mode === "reset") {
+        const { data } = await requestPasswordReset(form.phone.trim());
+        toast(data.detail);
+        setMode("resetConfirm");
       } else {
-        await register(form);
+        const { data } = await confirmPasswordReset(form.phone.trim(), form.code.trim(), form.password);
+        toast(data.detail);
+        setForm({ ...form, password: "", code: "" });
+        setMode("login");
       }
-      onClose();
     } catch (err) {
-      setError("Connexion impossible. Vérifie tes identifiants.");
+      const fallback = mode === "login" ? "Numéro ou mot de passe incorrect." : undefined;
+      setError(err.response?.status === 401 ? fallback : apiErrorMessage(err, fallback));
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  const [title, sub] = TITLES[mode];
+  const submitLabel = {
+    login: "Se connecter",
+    register: "Créer mon compte",
+    reset: "Recevoir un code",
+    resetConfirm: "Changer le mot de passe",
+  }[mode];
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Connexion à Annalo">
-      <form onSubmit={handleSubmit} className="space-y-4">
+    <Modal isOpen={isOpen} onClose={closeModal}>
+      <h3>{title}</h3>
+      <div className="sub">{sub}</div>
+      <form onSubmit={handleSubmit}>
         {mode === "register" && (
-          <input
-            name="full_name"
-            placeholder="Nom complet"
-            value={form.full_name}
-            onChange={handleChange}
-            className="w-full rounded-xl border border-text-faint/30 px-4 py-2.5"
-            required
-          />
+          <>
+            <div className="field-label">Nom complet</div>
+            <input className="field-input" value={form.full_name} onChange={set("full_name")} placeholder="Ton nom" required />
+          </>
         )}
-        <input
-          id="auth-phone"
-          name="phone"
-          placeholder="Numéro de téléphone"
-          value={form.phone}
-          onChange={handleChange}
-          className="w-full rounded-xl border border-text-faint/30 px-4 py-2.5"
-          required
-        />
-        <input
-          name="password"
-          type="password"
-          placeholder="Mot de passe"
-          value={form.password}
-          onChange={handleChange}
-          className="w-full rounded-xl border border-text-faint/30 px-4 py-2.5"
-          required
-        />
-        {error && <p className="text-sm text-brick">{error}</p>}
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {mode === "login" ? "Se connecter" : "Créer mon compte"}
-        </Button>
-        <button
-          type="button"
-          onClick={() => setMode(mode === "login" ? "register" : "login")}
-          className="w-full text-sm text-navy underline"
-        >
-          {mode === "login" ? "Pas de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
+        {mode !== "resetConfirm" && (
+          <>
+            <div className="field-label">Numéro de téléphone</div>
+            <input className="field-input" type="tel" id="auth-phone" value={form.phone} onChange={set("phone")} placeholder="+229 00 00 00 00" autoComplete="tel" required />
+          </>
+        )}
+        {mode === "register" && (
+          <>
+            <div className="field-label">Email (facultatif)</div>
+            <input className="field-input" type="email" value={form.email} onChange={set("email")} placeholder="toi@exemple.com" autoComplete="email" />
+          </>
+        )}
+        {mode === "resetConfirm" && (
+          <>
+            <div className="field-label">Code reçu par SMS</div>
+            <input className="field-input" inputMode="numeric" maxLength={6} value={form.code} onChange={set("code")} placeholder="000000" autoComplete="one-time-code" required />
+          </>
+        )}
+        {mode !== "reset" && (
+          <>
+            <div className="field-label">{mode === "resetConfirm" ? "Nouveau mot de passe" : "Mot de passe"}</div>
+            <input
+              className="field-input"
+              type="password"
+              value={form.password}
+              onChange={set("password")}
+              placeholder="••••••••"
+              minLength={mode === "login" ? undefined : 6}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              required
+            />
+          </>
+        )}
+        {mode === "login" && (
+          <div className="form-aside">
+            <a href="#" onClick={switchMode("reset")}>Mot de passe oublié ?</a>
+          </div>
+        )}
+        {error && <div className="form-error">{error}</div>}
+        <button className="btn btn-navy" type="submit" style={{ width: "100%", marginTop: 22 }} disabled={isSubmitting}>
+          {isSubmitting ? "Patiente…" : submitLabel}
         </button>
       </form>
+      <div className="form-switch">
+        {mode === "login" ? (
+          <>Pas encore de compte ? <a href="#" onClick={switchMode("register")}>Créer un compte</a></>
+        ) : (
+          <>Déjà un compte ? <a href="#" onClick={switchMode("login")}>Se connecter</a></>
+        )}
+      </div>
     </Modal>
   );
 }

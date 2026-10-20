@@ -1,57 +1,91 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
-import { useCart } from "../../context/CartContext";
-import AuthModal from "../auth/AuthModal";
+import { useUI } from "../../context/UIContext";
+import { firstName, initial } from "../../lib/format";
+import SectionLink from "../common/SectionLink";
 
-/**
- * TODO (Claude Code): ajouter le menu mobile ("mobile-nav" / "burger-icon")
- * et le chip utilisateur ("chip-avatar" / "chip-name") une fois connecté.
- */
+const LINKS = [
+  { to: "categories", label: "Catégories" },
+  { to: "catalogue", label: "Catalogue" },
+  { to: "tarifs", label: "Tarifs" },
+  { to: "annonces", label: "Annonces" },
+  { to: "contribuer", label: "Contribuer" },
+];
+
+/** "site-header" de la maquette, avec le menu mobile ("mobile-nav" / burger). */
 export default function Header() {
   const { isAuthenticated, user } = useAuth();
-  const { count, openDrawer } = useCart();
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const { openModal } = useUI();
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // La maquette affiche "mobile-nav" via la classe body.nav-open.
+  useEffect(() => {
+    document.body.classList.toggle("nav-open", isNavOpen);
+    return () => document.body.classList.remove("nav-open");
+  }, [isNavOpen]);
+
+  const closeNav = () => setIsNavOpen(false);
+
+  function openAuthOrAccount() {
+    closeNav();
+    openModal(isAuthenticated ? "account" : "auth");
+  }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-text-faint/10 bg-white2/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-        <Link to="/" className="text-xl font-bold text-navy">Annalo</Link>
-
-        <nav className="hidden items-center gap-6 md:flex">
-          <a href="#catalogue" className="text-sm font-medium text-text-soft hover:text-navy">Catalogue</a>
-          <a href="#abonnements" className="text-sm font-medium text-text-soft hover:text-navy">Abonnements</a>
-          <a href="#contribuer" className="text-sm font-medium text-text-soft hover:text-navy">Contribuer</a>
+    <header id="site-header" className={isScrolled ? "scrolled" : ""}>
+      <div className="wrap nav">
+        <Link to="/" className="brand" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+          <span className="mark">A</span> Annalo
+        </Link>
+        <nav className="nav-links">
+          {LINKS.map((l) => (
+            <SectionLink key={l.to} to={l.to}>{l.label}</SectionLink>
+          ))}
         </nav>
-
-        <div className="flex items-center gap-3">
-          <button onClick={openDrawer} id="cart-fab" className="relative">
-            🛒
-            {count > 0 && (
-              <span id="cart-fab-count" className="absolute -right-2 -top-2 rounded-full bg-gold px-1.5 text-xs text-white2">
-                {count}
-              </span>
-            )}
-          </button>
-
+        <div className="nav-actions">
           {isAuthenticated ? (
-            <Link to="/compte" id="chip-name" className="font-semibold text-navy">
-              {user?.full_name}
-            </Link>
-          ) : (
-            <button
-              id="btn-login-desktop"
-              onClick={() => setIsAuthOpen(true)}
-              className="rounded-xl bg-navy px-4 py-2 text-sm font-semibold text-white2"
-            >
-              Se connecter
+            <button className="profile-chip" id="btn-profile-desktop" onClick={openAuthOrAccount}>
+              <span className="avatar">{initial(user?.full_name)}</span>
+              <span className="user-name-chip">{firstName(user?.full_name)}</span>
             </button>
+          ) : (
+            <button className="btn btn-navy" id="btn-login-desktop" onClick={openAuthOrAccount}>
+              Connexion
+            </button>
+          )}
+          <button className="burger" onClick={() => setIsNavOpen((v) => !v)} aria-label="Menu" aria-expanded={isNavOpen}>
+            <svg viewBox="0 0 24 24">
+              {isNavOpen ? (
+                <path d="M6 6l12 12M18 6L6 18" strokeLinecap="round" />
+              ) : (
+                <path d="M4 7h16M4 12h16M4 17h16" strokeLinecap="round" />
+              )}
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div className="mobile-nav" id="mobile-nav">
+        {LINKS.map((l) => (
+          <SectionLink key={l.to} to={l.to} onNavigate={closeNav}>{l.label}</SectionLink>
+        ))}
+        <div className="mn-actions">
+          {isAuthenticated ? (
+            <button className="btn btn-outline on-light" onClick={openAuthOrAccount}>Mon compte</button>
+          ) : (
+            <button className="btn btn-navy" onClick={openAuthOrAccount}>Connexion</button>
           )}
         </div>
       </div>
-
-      <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </header>
   );
 }

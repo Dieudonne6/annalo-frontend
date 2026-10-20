@@ -20,13 +20,13 @@ export function CartProvider({ children }) {
   }, [isAuthenticated]);
 
   useEffect(() => {
-    refresh();
+    refresh().catch(() => setCart({ items: [], total: 0 }));
   }, [refresh]);
 
+  // Exige un utilisateur connecté (vérifié par l'appelant via useUI().requireAuth).
   async function addItem(paperId) {
     await cartApi.addToCart(paperId);
     await refresh();
-    setIsDrawerOpen(true);
   }
 
   async function removeItem(itemId) {

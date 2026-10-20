@@ -1,0 +1,35 @@
+/* Compléments au CSS de la maquette pour des états qu'elle ne prévoit pas
+   (erreurs de formulaire, boutons désactivés, page de retour de paiement...).
+   Mêmes variables et même vocabulaire visuel que site.css. */
+
+.btn:disabled{opacity:0.6; cursor:not-allowed; transform:none !important;}
+
+.form-error{
+  margin-top:14px; padding:10px 13px; border-radius:10px; font-size:12.5px; font-weight:600;
+  color:var(--brick); background:rgba(162,62,46,0.08); border:1px solid rgba(162,62,46,0.2);
+}
+.form-aside{text-align:right; margin-top:10px; font-size:12px;}
+.form-aside a{color:var(--navy); font-weight:700;}
+.form-switch{text-align:center; margin-top:14px; font-size:12.5px; color:var(--text-soft);}
+.form-switch a{color:var(--navy); font-weight:700;}
+
+/* Noms d'examens longs (ex. "Concours Police — Gardiens de la paix") */
+.tcard .badge{max-width:calc(100% - 34px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+
+/* Moins de 4 formules : on centre les cartes au lieu de laisser des colonnes vides. */
+@media (min-width: 981px){
+  .plan-grid.count-1{grid-template-columns:minmax(0, 280px); justify-content:center;}
+  .plan-grid.count-2{grid-template-columns:repeat(2, minmax(0, 280px)); justify-content:center;}
+  .plan-grid.count-3{grid-template-columns:repeat(3, minmax(0, 280px)); justify-content:center;}
+}
+
+/* Boutons de téléchargement de la modale de détail (accès débloqué) */
+.detail-actions{display:flex; flex-direction:column; gap:10px; margin-top:20px;}
+.detail-actions .btn{width:100%;}
+
+/* Puces de niveau de la modale "Contribuer" (des <button> ici) */
+.chip-modal{cursor:pointer;}
+
+.payment-amount{color:var(--text-soft); font-size:14px; margin-top:10px;}
+.page-banner .hero-cta{margin-top:26px;}
+.page-banner{min-height:calc(100vh - 76px - 260px);}

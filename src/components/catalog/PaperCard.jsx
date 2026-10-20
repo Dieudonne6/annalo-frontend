@@ -1,35 +1,40 @@
-import { useCart } from "../../context/CartContext";
-import Button from "../common/Button";
+import { formatPrice } from "../../lib/format";
 
-/**
- * Une carte du "cat-grid". Cliquer sur la carte ouvre normalement
- * "modal-detail" (detail-matiere, detail-badge, detail-meta,
- * detail-price-opts) — à brancher par Claude Code (ex: onOpenDetail(paper)).
- */
-export default function PaperCard({ paper, onOpenDetail }) {
-  const { addItem } = useCart();
+function priceLabel(paper) {
+  if (paper.is_free_sample) return "Gratuit";
+  if (paper.standalone_price) return formatPrice(paper.standalone_price);
+  return "Abonnement";
+}
 
+/** Une carte "tcard" du catalogue ; cliquer ouvre "modal-detail". */
+export default function PaperCard({ paper, isFavorite, onToggleFavorite, onOpen }) {
   return (
-    <div className="rounded-2xl border border-text-faint/15 bg-white2 p-4 shadow-sm">
-      <button onClick={() => onOpenDetail?.(paper)} className="text-left">
-        <p className="text-sm text-text-faint">{paper.exam} · {paper.level}</p>
-        <h4 className="font-bold text-navy">{paper.subject}</h4>
-        <p className="text-sm text-text-soft">Session {paper.session_year}</p>
-        {paper.has_correction && (
-          <span className="mt-2 inline-block rounded-full bg-gold-light/40 px-2 py-0.5 text-xs font-semibold text-gold-deep">
-            Corrigé disponible
-          </span>
-        )}
-      </button>
-
-      {paper.standalone_price && (
-        <div className="mt-3 flex items-center justify-between">
-          <span className="font-semibold">{paper.standalone_price} FCFA</span>
-          <Button variant="outline" onClick={() => addItem(paper.id)}>
-            Ajouter
-          </Button>
-        </div>
-      )}
+    <div className="tcard" onClick={() => onOpen(paper.id)} role="button" tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onOpen(paper.id)}>
+      <div className="top-row">
+        <span className="badge" title={paper.exam}>{paper.exam}</span>
+        <button
+          className={`heart ${isFavorite ? "on" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(paper.id);
+          }}
+          aria-label={isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 21s-7-4.6-9.5-9C.8 8.4 2.6 5 6 5c2 0 3.3 1 4 2 .7-1 2-2 4-2 3.4 0 5.2 3.4 3.5 7-2.5 4.4-9.5 9-9.5 9z" />
+          </svg>
+        </button>
+      </div>
+      <div className="matiere">{paper.subject}</div>
+      <div className="meta">
+        Session {paper.session_year}
+        {paper.has_correction && " · Corrigé inclus"}
+      </div>
+      <div className="bottom">
+        <span className="price">{priceLabel(paper)}</span>
+        <span className="niveau-tag">{paper.level}</span>
+      </div>
     </div>
   );
 }
