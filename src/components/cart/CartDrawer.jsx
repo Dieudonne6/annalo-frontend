@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useAuth } from "../../context/AuthContext";
 import { useCart } from "../../context/CartContext";
@@ -16,6 +16,14 @@ export default function CartDrawer() {
   const { cart, count, isDrawerOpen, openDrawer, closeDrawer, removeItem } = useCart();
   const { toast, requireAuth } = useUI();
   const [isPaying, setIsPaying] = useState(false);
+
+  // Échap ferme le tiroir, comme les modales.
+  useEffect(() => {
+    if (!isDrawerOpen) return undefined;
+    const onKey = (e) => e.key === "Escape" && closeDrawer();
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isDrawerOpen, closeDrawer]);
 
   async function handleRemove(itemId) {
     try {

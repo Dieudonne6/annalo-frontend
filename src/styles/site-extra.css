@@ -13,8 +13,10 @@
 .form-switch{text-align:center; margin-top:14px; font-size:12.5px; color:var(--text-soft);}
 .form-switch a{color:var(--navy); font-weight:700;}
 
-/* Noms d'examens longs (ex. "Concours Police — Gardiens de la paix") */
-.tcard .badge{max-width:calc(100% - 34px); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+/* Noms d'examens longs (ex. "Concours Police — Gardiens de la paix") : tronqués
+   avec "…" ; min-width:0 évite qu'ils élargissent la grille (débordement). */
+.tcard{min-width:0;}
+.tcard .badge{min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
 
 /* Moins de 4 formules : on centre les cartes au lieu de laisser des colonnes vides. */
 @media (min-width: 981px){
